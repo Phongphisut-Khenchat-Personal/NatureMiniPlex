@@ -1,0 +1,12 @@
+# SQL Server Express สำหรับเครื่องพัฒนา
+# รหัสนี้ใช้ในเครื่องท้องถิ่นเท่านั้น เพื่อให้เปิดโปรเจกต์แล้วต่อฐานข้อมูลได้ทันที
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: natureminiplex-sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "NatureMiniPlex!2026"
+      MSSQL_PID: Express
+    ports:
+      - "1433:1433"

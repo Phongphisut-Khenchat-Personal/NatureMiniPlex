@@ -1,0 +1,83 @@
+@model IEnumerable<Showtime>
+@{
+    ViewData["Title"] = "รอบฉาย";
+    var from = (DateOnly)ViewBag.From;
+    var to = (DateOnly)ViewBag.To;
+    var cinemas = (IEnumerable<Cinema>)ViewBag.Cinemas;
+    var today = AppClock.Today;
+}
+
+<h1 class="h3">รอบฉาย</h1>
+<p class="text-secondary">หนึ่งโรงในหนึ่งวันฉายได้เรื่องเดียว เลือกได้ 1 ถึง 3 รอบจาก เช้า กลางวัน เย็น และดึก</p>
+
+<form class="row g-2 align-items-end mb-4" asp-action="Edit" method="get">
+    <div class="col-md-4">
+        <label class="form-label" for="cinemaId">โรงหนัง</label>
+        <select class="form-select" id="cinemaId" name="cinemaId">
+            @foreach (var cinema in cinemas)
+            {
+                <option value="@cinema.CinemaId">@cinema.CinemaName</option>
+            }
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label class="form-label" for="date">วันที่ฉาย</label>
+        <input class="form-control" id="date" name="date" type="date" value="@today.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-md-4">
+        <button class="btn btn-primary" type="submit">จัดการรอบของวันนี้</button>
+    </div>
+</form>
+
+<form class="row g-2 align-items-end mb-4" method="get">
+    <div class="col-md-3">
+        <label class="form-label" for="from">ดูตั้งแต่วันที่</label>
+        <input class="form-control" id="from" name="from" type="date" value="@from.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="to">ถึงวันที่</label>
+        <input class="form-control" id="to" name="to" type="date" value="@to.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-outline-secondary" type="submit">แสดงรอบ</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>วันที่</th>
+            <th>โรง</th>
+            <th>เรื่อง</th>
+            <th>รอบ</th>
+            <th>สถานะ</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var show in Model)
+        {
+            <tr>
+                <td>@ThaiDate.Day(show.ShowDate)</td>
+                <td>@show.Cinema.CinemaName</td>
+                <td>@show.Movie.Title</td>
+                <td>@ShowSlotNames.Thai(show.Slot)</td>
+                <td>@StatusNames.Showtime(show.Status)</td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-cinemaId="@show.CinemaId" asp-route-date="@show.ShowDate.ToString("yyyy-MM-dd")">แก้รอบวันนี้</a>
+                    @if (show.Status == ShowtimeStatus.Open)
+                    {
+                        <a class="btn btn-sm btn-outline-success" asp-controller="Bookings" asp-action="Show" asp-route-id="@show.ShowtimeId">ผังที่นั่ง</a>
+                    }
+                    @if (show.Status == ShowtimeStatus.Open && show.ShowDate <= today)
+                    {
+                        <form class="d-inline" asp-action="Start" method="post" onsubmit="return confirm('ยืนยันเริ่มฉาย? หลังจากนั้นจะจองและยกเลิกจองรอบนี้ไม่ได้อีก');">
+                            <input type="hidden" name="id" value="@show.ShowtimeId" />
+                            <button class="btn btn-sm btn-warning" type="submit">ยืนยันเริ่มฉาย</button>
+                        </form>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

@@ -1,0 +1,118 @@
+@model ReportPage
+@{
+    ViewData["Title"] = "รายงาน";
+}
+
+<h1 class="h3">รายงานการจอง</h1>
+<p class="text-secondary">ตัวเลขอ่านจากฐานข้อมูล ณ @ThaiDate.DateTime(Model.GeneratedAt) ไม่ได้เก็บสำเนารายงานไว้</p>
+
+<form class="row g-2 align-items-end mb-4" method="get">
+    <div class="col-md-3">
+        <label class="form-label" for="from">ตั้งแต่วันที่</label>
+        <input class="form-control" id="from" name="from" type="date" value="@Model.From.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="to">ถึงวันที่</label>
+        <input class="form-control" id="to" name="to" type="date" value="@Model.To.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="cinemaId">โรง</label>
+        <select class="form-select" id="cinemaId" name="cinemaId">
+            <option value="">ทุกโรง</option>
+            @foreach (var cinema in Model.Cinemas)
+            {
+                if (Model.CinemaId == cinema.CinemaId)
+                {
+                    <option value="@cinema.CinemaId" selected>@cinema.CinemaName</option>
+                }
+                else
+                {
+                    <option value="@cinema.CinemaId">@cinema.CinemaName</option>
+                }
+            }
+        </select>
+    </div>
+    <div class="col-md-3">
+        <label class="form-label" for="phone">เบอร์โทร</label>
+        <input class="form-control" id="phone" name="phone" value="@Model.Phone" />
+    </div>
+    <div class="col-12">
+        <button class="btn btn-primary" type="submit">ดูรายงาน</button>
+    </div>
+</form>
+
+<h2 class="h5">แต่ละรอบ</h2>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>วันที่</th>
+            <th>โรง</th>
+            <th>เรื่อง</th>
+            <th>รอบ</th>
+            <th>จองแล้ว</th>
+            <th>ว่าง</th>
+            <th>สถานะ</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var show in Model.Shows)
+        {
+            <tr>
+                <td>@ThaiDate.Day(show.ShowDate)</td>
+                <td>@show.CinemaName</td>
+                <td>@show.MovieTitle</td>
+                <td>@ShowSlotNames.Thai(show.Slot)</td>
+                <td>@show.BookedCount / @show.SeatCount</td>
+                <td>@show.FreeCount</td>
+                <td>@StatusNames.Showtime(show.Status)</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2 class="h5">สรุปตามเรื่อง</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>เรื่อง</th>
+            <th>ที่นั่งที่จองอยู่</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var movie in Model.Movies)
+        {
+            <tr>
+                <td>@movie.Title</td>
+                <td>@movie.BookedSeats</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h2 class="h5">รายการจอง</h2>
+<p class="text-secondary">ถ้าไม่กรอกเบอร์ จะเห็นเฉพาะที่นั่งที่ยังจองอยู่ ถ้ากรอกเบอร์ จะเห็นทั้งที่ยังจองและที่ยกเลิกแล้วของเบอร์นั้น</p>
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th>เบอร์</th>
+            <th>โรง</th>
+            <th>เรื่อง</th>
+            <th>วันและรอบ</th>
+            <th>ที่นั่ง</th>
+            <th>สถานะ</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var row in Model.Bookings)
+        {
+            <tr>
+                <td>@row.PhoneNumber</td>
+                <td>@row.CinemaName</td>
+                <td>@row.MovieTitle</td>
+                <td>@ThaiDate.Day(row.ShowDate) รอบ@(ShowSlotNames.Thai(row.Slot))</td>
+                <td>@row.SeatCode</td>
+                <td>@StatusNames.BookingSeat(row.Status)</td>
+            </tr>
+        }
+    </tbody>
+</table>

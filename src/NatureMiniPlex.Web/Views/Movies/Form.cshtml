@@ -1,0 +1,30 @@
+@model MovieForm
+@{
+    var editing = Model.MovieId != 0;
+    ViewData["Title"] = editing ? "แก้ไขเรื่องหนัง" : "เพิ่มเรื่องหนัง";
+}
+
+<h1 class="h3">@ViewData["Title"]</h1>
+<p class="text-secondary">ช่วงวันที่คือวันที่เรื่องนี้ฉายได้ วันสิ้นสุดรวมอยู่ในช่วงนี้ จากนั้นไปกำหนดจำนวนรอบของแต่ละวันที่หน้ารอบฉาย</p>
+
+<form asp-action="@(editing ? "Edit" : "Create")" method="post" class="col-lg-6">
+    @if (editing)
+    {
+        <input type="hidden" asp-for="MovieId" />
+    }
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="Title">ชื่อเรื่อง</label>
+        <input class="form-control" asp-for="Title" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="StartDate">วันเริ่มฉาย</label>
+        <input class="form-control" asp-for="StartDate" type="date" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label" asp-for="StopDate">วันสิ้นสุด</label>
+        <input class="form-control" asp-for="StopDate" type="date" />
+    </div>
+    <button class="btn btn-primary" type="submit">บันทึก</button>
+    <a class="btn btn-link" asp-action="Index">กลับ</a>
+</form>

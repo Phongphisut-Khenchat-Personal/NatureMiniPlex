@@ -1,0 +1,55 @@
+﻿@model ReportPage
+@{
+    ViewData["Title"] = "หน้าแรก";
+    var cinemas = (IEnumerable<Cinema>)ViewBag.Cinemas;
+}
+
+<h1 class="h3">รอบฉายวันนี้</h1>
+<p class="text-secondary">ข้อมูล ณ @ThaiDate.DateTime(Model.GeneratedAt) อ่านจากฐานข้อมูลตอนเปิดหน้านี้</p>
+
+<div class="row g-3 mb-4">
+    @foreach (var cinema in cinemas)
+    {
+        var rows = Model.Shows.Where(show => show.CinemaName == cinema.CinemaName).ToList();
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h2 class="h5">@cinema.CinemaName</h2>
+                    <p class="mb-1">ที่นั่ง @cinema.ColumnCount คอลัมน์ × @cinema.RowCount แถว รวม @(cinema.ColumnCount * cinema.RowCount) ที่</p>
+                    <p class="mb-0">วันนี้มี @rows.Count รอบ จองแล้ว @rows.Sum(row => row.BookedCount) ที่นั่ง</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model.Shows.Count == 0)
+{
+    <p>วันนี้ยังไม่มีรอบฉาย</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>โรง</th>
+                <th>เรื่อง</th>
+                <th>รอบ</th>
+                <th>จองแล้ว</th>
+                <th>สถานะ</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var show in Model.Shows)
+            {
+                <tr>
+                    <td>@show.CinemaName</td>
+                    <td>@show.MovieTitle</td>
+                    <td>@ShowSlotNames.Thai(show.Slot)</td>
+                    <td>@show.BookedCount / @show.SeatCount</td>
+                    <td>@StatusNames.Showtime(show.Status)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}

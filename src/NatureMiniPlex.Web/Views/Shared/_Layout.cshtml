@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Nature MiniPlex</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/NatureMiniPlex.Web.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index">Nature MiniPlex</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="เปิดเมนู">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="mainNav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Index">หน้าแรก</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Movies" asp-action="Index">เรื่องหนัง</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Schedules" asp-action="Index">รอบฉาย</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Bookings" asp-action="Index">จองตั๋ว</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Bookings" asp-action="Cancel">ยกเลิกจอง</a></li>
+                        <li class="nav-item"><a class="nav-link" asp-controller="Reports" asp-action="Index">รายงาน</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container py-4">
+        @if (TempData["Success"] is string success)
+        {
+            <div class="alert alert-success">@success</div>
+        }
+        @if (TempData["Error"] is string error)
+        {
+            <div class="alert alert-danger">@error</div>
+        }
+        <main>
+            @RenderBody()
+        </main>
+    </div>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

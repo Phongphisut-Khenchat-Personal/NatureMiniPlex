@@ -1,0 +1,63 @@
+@model IReadOnlyList<CancelSeatRow>
+@{
+    ViewData["Title"] = "ยกเลิกการจอง";
+    var phone = (string)ViewBag.Phone;
+}
+
+<h1 class="h3">ยกเลิกการจอง</h1>
+<p class="text-secondary">ยกเลิกได้เฉพาะที่นั่งของเบอร์ที่กรอก และเฉพาะรอบที่ยังไม่เริ่มฉาย</p>
+
+<form class="row g-2 align-items-end mb-4" method="get">
+    <div class="col-md-4">
+        <label class="form-label" for="phone">เบอร์โทรศัพท์</label>
+        <input class="form-control" id="phone" name="phone" value="@phone" />
+    </div>
+    <div class="col-md-3">
+        <button class="btn btn-primary" type="submit">ค้นหา</button>
+    </div>
+</form>
+
+@if (!string.IsNullOrWhiteSpace(phone))
+{
+    if (Model.Count == 0)
+    {
+        <p>ไม่พบที่นั่งที่ยังจองอยู่ของเบอร์นี้</p>
+    }
+    else
+    {
+        <form asp-action="CancelSeats" method="post" onsubmit="return confirm('ยกเลิกที่นั่งที่เลือก?');">
+            <input type="hidden" name="phone" value="@phone" />
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>โรง</th>
+                        <th>เรื่อง</th>
+                        <th>วันและรอบ</th>
+                        <th>ที่นั่ง</th>
+                        <th>สถานะ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model)
+                    {
+                        <tr>
+                            <td>
+                                @if (row.CanCancel)
+                                {
+                                    <input type="checkbox" name="bookingSeatIds" value="@row.BookingSeatId" />
+                                }
+                            </td>
+                            <td>@row.CinemaName</td>
+                            <td>@row.MovieTitle</td>
+                            <td>@ThaiDate.Day(row.ShowDate) รอบ@(ShowSlotNames.Thai(row.Slot))</td>
+                            <td>@row.SeatCode</td>
+                            <td>@(row.CanCancel ? "ยกเลิกได้" : row.Reason)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+            <button class="btn btn-danger" type="submit">ยกเลิกที่นั่งที่เลือก</button>
+        </form>
+    }
+}
