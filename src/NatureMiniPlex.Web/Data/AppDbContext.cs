@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<Showtime> Showtimes => Set<Showtime>();
     public DbSet<Booking> Bookings => Set<Booking>();
     public DbSet<BookingSeat> BookingSeats => Set<BookingSeat>();
+    public DbSet<User> Users => Set<User>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -55,8 +56,18 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Booking>(entity =>
         {
+            entity.Property(booking => booking.BookingCode).HasMaxLength(40).IsRequired();
             entity.Property(booking => booking.PhoneNumber).HasMaxLength(10).IsRequired();
+            entity.HasIndex(booking => booking.BookingCode).IsUnique();
             entity.HasIndex(booking => booking.PhoneNumber);
+        });
+
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.Property(user => user.Username).HasMaxLength(50).IsRequired();
+            entity.Property(user => user.PasswordHash).HasMaxLength(200).IsRequired();
+            entity.Property(user => user.Role).HasMaxLength(20).IsRequired();
+            entity.HasIndex(user => user.Username).IsUnique();
         });
 
         modelBuilder.Entity<BookingSeat>(entity =>

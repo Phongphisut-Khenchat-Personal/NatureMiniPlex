@@ -95,6 +95,7 @@ public class ReportService
             .Select(item => new BookingReportRow
             {
                 PhoneNumber = item.Booking.PhoneNumber,
+                BookingCode = item.Booking.BookingCode,
                 CinemaName = item.Showtime.Cinema.CinemaName,
                 MovieTitle = item.Showtime.Movie.Title,
                 ShowDate = item.Showtime.ShowDate,
@@ -116,6 +117,70 @@ public class ReportService
             Movies = movieRows,
             Bookings = bookingRows,
             GeneratedAt = DateTime.Now
+        };
+    }
+
+    public async Task<DashboardView> DashboardAsync()
+    {
+        var today = AppClock.Today;
+        var from = today.AddDays(-6);
+        var booked = _db.BookingSeats.AsNoTracking().Where(item => item.Status == BookingSeatStatus.Booked);
+        var dayRows = await booked
+            .Where(item => item.Showtime.ShowDate >= from && item.Showtime.ShowDate <= today)
+            .GroupBy(item => item.Showtime.ShowDate)
+            .Select(group => new { Date = group.Key, Count = group.Count() })
+            .ToListAsync();
+        var cinemas = await _db.Cinemas.AsNoTracking().OrderBy(cinema => cinema.CinemaId).ToListAsync();
+        var shares = new List<CinemaShare>();
+        foreach (var cinema in cinemas)
+        {
+            shares.Add(new CinemaShare
+            {
+                CinemaName = cinema.CinemaName,
+                BookedSeats = await booked.CountAsync(item => item.Showtime.ShowDate == today && item.Showtime.CinemaId == cinema.CinemaId),
+                SeatCount = await _db.Seats.CountAsync(seat => seat.CinemaId == cinema.CinemaId),
+                ShowsToday = await _db.Showtimes.CountAsync(show =>
+                    show.CinemaId == cinema.CinemaId && show.ShowDate == today && show.Status != ShowtimeStatus.Cancelled)
+            });
+        }
+
+        var recent = await _db.BookingSeats.AsNoTracking()
+            .Include(item => item.Booking)
+            .Include(item => item.Seat)
+            .Include(item => item.Showtime).ThenInclude(show => show.Movie)
+            .Include(item => item.Showtime).ThenInclude(show => show.Cinema)
+            .OrderByDescending(item => item.BookingSeatId)
+            .Take(8)
+            .ToListAsync();
+
+        return new DashboardView
+        {
+            Today = today,
+            BookedSeatsToday = await booked.CountAsync(item => item.Showtime.ShowDate == today),
+            PhonesToday = await booked.Where(item => item.Showtime.ShowDate == today).Select(item => item.Booking.PhoneNumber).Distinct().CountAsync(),
+            CinemaCount = cinemas.Count,
+            ShowsToday = await _db.Showtimes.CountAsync(show => show.ShowDate == today && show.Status != ShowtimeStatus.Cancelled),
+            Days = Enumerable.Range(0, 7).Select(offset =>
+            {
+                var date = from.AddDays(offset);
+                return new DayCount
+                {
+                    Date = date,
+                    BookedSeats = dayRows.FirstOrDefault(row => row.Date == date)?.Count ?? 0
+                };
+            }).ToList(),
+            Cinemas = shares,
+            Recent = recent.Select(item => new RecentBooking
+            {
+                BookingCode = item.Booking.BookingCode,
+                MovieTitle = item.Showtime.Movie.Title,
+                CinemaName = item.Showtime.Cinema.CinemaName,
+                SeatCode = item.Seat.SeatCode,
+                ShowDate = item.Showtime.ShowDate,
+                Slot = item.Showtime.Slot,
+                Time = ShowSlotNames.Clock(item.Showtime.Slot),
+                Status = StatusNames.BookingSeat(item.Status)
+            }).ToList()
         };
     }
 }

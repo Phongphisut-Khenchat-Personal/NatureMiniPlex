@@ -101,12 +101,14 @@ public class ScheduleService
                     MovieId = movieId,
                     ShowDate = showDate,
                     Slot = slot,
+                    StartTime = ShowSlotNames.TimeOf(slot),
                     Status = ShowtimeStatus.Open
                 });
                 continue;
             }
 
             show.MovieId = movieId;
+            show.StartTime = ShowSlotNames.TimeOf(slot);
             show.Status = ShowtimeStatus.Open;
             show.StartedAt = null;
         }
@@ -162,6 +164,223 @@ public class ScheduleService
         show.StartedAt = DateTime.Now;
         await _db.SaveChangesAsync();
         return RuleResult.Ok("ยืนยันเริ่มฉายแล้ว รอบนี้ปิดการจองและยกเลิกการจอง");
+    }
+
+    public async Task<List<CinemaSummary>> CinemaSummariesAsync() =>
+        await _db.Cinemas.AsNoTracking()
+            .OrderBy(cinema => cinema.CinemaId)
+            .Select(cinema => new CinemaSummary
+            {
+                CinemaId = cinema.CinemaId,
+                CinemaName = cinema.CinemaName,
+                ColumnCount = cinema.ColumnCount,
+                RowCount = cinema.RowCount,
+                SeatCount = cinema.Seats.Count
+            })
+            .ToListAsync();
+
+    public async Task<CinemaSeatPage?> SeatsAsync(int cinemaId)
+    {
+        var cinema = await _db.Cinemas.AsNoTracking().FirstOrDefaultAsync(item => item.CinemaId == cinemaId);
+        if (cinema == null)
+        {
+            return null;
+        }
+
+        var seats = await _db.Seats.AsNoTracking().Where(seat => seat.CinemaId == cinemaId).ToListAsync();
+        return new CinemaSeatPage
+        {
+            CinemaId = cinema.CinemaId,
+            CinemaName = cinema.CinemaName,
+            ColumnCount = cinema.ColumnCount,
+            RowCount = cinema.RowCount,
+            Seats = SeatLayout.InDisplayOrder(seats).Select(seat => new SeatCell
+            {
+                SeatId = seat.SeatId,
+                SeatRow = seat.SeatRow,
+                SeatColumn = seat.SeatColumn,
+                SeatCode = seat.SeatCode
+            }).ToList()
+        };
+    }
+
+    public async Task<List<ShowtimeListItem>> QueryAsync(DateOnly from, DateOnly to, int? cinemaId, int? movieId, bool includeCancelled)
+    {
+        if (to < from)
+        {
+            to = from;
+        }
+
+        var query = _db.Showtimes.AsNoTracking()
+            .Include(show => show.Cinema)
+            .Include(show => show.Movie)
+            .Where(show => show.ShowDate >= from && show.ShowDate <= to);
+        if (!includeCancelled)
+        {
+            query = query.Where(show => show.Status != ShowtimeStatus.Cancelled);
+        }
+
+        if (cinemaId != null)
+        {
+            query = query.Where(show => show.CinemaId == cinemaId);
+        }
+
+        if (movieId != null)
+        {
+            query = query.Where(show => show.MovieId == movieId);
+        }
+
+        var shows = await query
+            .OrderBy(show => show.ShowDate)
+            .ThenBy(show => show.CinemaId)
+            .ThenBy(show => show.Slot)
+            .ToListAsync();
+        var ids = shows.Select(show => show.ShowtimeId).ToList();
+        var booked = await _db.BookingSeats.AsNoTracking()
+            .Where(item => item.Status == BookingSeatStatus.Booked && ids.Contains(item.ShowtimeId))
+            .GroupBy(item => item.ShowtimeId)
+            .Select(group => new { group.Key, Count = group.Count() })
+            .ToDictionaryAsync(item => item.Key, item => item.Count);
+        var seatCounts = await _db.Seats.AsNoTracking()
+            .GroupBy(seat => seat.CinemaId)
+            .Select(group => new { group.Key, Count = group.Count() })
+            .ToDictionaryAsync(item => item.Key, item => item.Count);
+
+        return shows.Select(show => new ShowtimeListItem
+        {
+            ShowtimeId = show.ShowtimeId,
+            CinemaId = show.CinemaId,
+            CinemaName = show.Cinema.CinemaName,
+            MovieId = show.MovieId,
+            MovieTitle = show.Movie.Title,
+            ShowDate = show.ShowDate,
+            Slot = show.Slot,
+            Time = ShowSlotNames.Clock(show.Slot),
+            Status = show.Status,
+            BookedCount = booked.GetValueOrDefault(show.ShowtimeId),
+            SeatCount = seatCounts.GetValueOrDefault(show.CinemaId)
+        }).ToList();
+    }
+
+    public async Task<RuleResult> CreateAsync(int cinemaId, int movieId, DateOnly showDate, ShowSlot slot)
+    {
+        if (!await _db.Cinemas.AnyAsync(cinema => cinema.CinemaId == cinemaId))
+        {
+            return RuleResult.Fail("ไม่พบโรงหนัง");
+        }
+
+        var movie = await _db.Movies.FirstOrDefaultAsync(item => item.MovieId == movieId);
+        if (movie == null || movie.Status != MovieStatus.Active)
+        {
+            return RuleResult.Fail("ไม่พบเรื่องหนัง หรือเรื่องนี้ถูกยกเลิกแล้ว");
+        }
+
+        if (showDate < movie.StartDate || showDate > movie.StopDate)
+        {
+            return RuleResult.Fail("วันที่ฉายต้องอยู่ในช่วงเริ่มต้นถึงสิ้นสุดของเรื่อง");
+        }
+
+        if (showDate < AppClock.Today)
+        {
+            return RuleResult.Fail("สร้างรอบย้อนหลังไม่ได้");
+        }
+
+        var rows = await _db.Showtimes
+            .Where(show => show.CinemaId == cinemaId && show.ShowDate == showDate)
+            .ToListAsync();
+        var sameSlot = rows.FirstOrDefault(show => show.Slot == slot);
+        if (sameSlot != null && sameSlot.Status != ShowtimeStatus.Cancelled)
+        {
+            return RuleResult.Fail("ช่วงเวลานี้มีรอบอยู่แล้ว");
+        }
+
+        var activeCount = rows.Count(show => show.Status != ShowtimeStatus.Cancelled);
+        if (activeCount >= 3)
+        {
+            return RuleResult.Fail("แต่ละโรงในหนึ่งวันมีได้ไม่เกิน 3 รอบ");
+        }
+
+        if (sameSlot == null)
+        {
+            _db.Showtimes.Add(new Showtime
+            {
+                CinemaId = cinemaId,
+                MovieId = movieId,
+                ShowDate = showDate,
+                Slot = slot,
+                StartTime = ShowSlotNames.TimeOf(slot),
+                Status = ShowtimeStatus.Open
+            });
+        }
+        else
+        {
+            sameSlot.MovieId = movieId;
+            sameSlot.StartTime = ShowSlotNames.TimeOf(slot);
+            sameSlot.Status = ShowtimeStatus.Open;
+            sameSlot.StartedAt = null;
+        }
+
+        try
+        {
+            await _db.SaveChangesAsync();
+        }
+        catch (DbUpdateException)
+        {
+            return RuleResult.Fail("ช่วงเวลานี้มีรอบอยู่แล้ว");
+        }
+
+        return RuleResult.Ok("เพิ่มรอบฉายแล้ว");
+    }
+
+    public async Task<RuleResult> UpdateMovieAsync(int showtimeId, int movieId)
+    {
+        var show = await _db.Showtimes
+            .Include(item => item.BookingSeats)
+            .FirstOrDefaultAsync(item => item.ShowtimeId == showtimeId);
+        if (show == null || show.Status == ShowtimeStatus.Cancelled)
+        {
+            return RuleResult.Fail("ไม่พบรอบฉาย");
+        }
+
+        if (IsLocked(show))
+        {
+            return RuleResult.Fail("รอบนี้ถูกจองหรือเริ่มฉายแล้ว จึงแก้เรื่องไม่ได้");
+        }
+
+        var movie = await _db.Movies.FirstOrDefaultAsync(item => item.MovieId == movieId);
+        if (movie == null || movie.Status != MovieStatus.Active)
+        {
+            return RuleResult.Fail("ไม่พบเรื่องหนัง หรือเรื่องนี้ถูกยกเลิกแล้ว");
+        }
+
+        if (show.ShowDate < movie.StartDate || show.ShowDate > movie.StopDate)
+        {
+            return RuleResult.Fail("วันที่ฉายต้องอยู่ในช่วงเริ่มต้นถึงสิ้นสุดของเรื่อง");
+        }
+
+        show.MovieId = movieId;
+        await _db.SaveChangesAsync();
+        return RuleResult.Ok("แก้เรื่องของรอบนี้แล้ว");
+    }
+
+    public async Task<RuleResult> CancelOneAsync(int showtimeId)
+    {
+        var show = await _db.Showtimes
+            .Include(item => item.BookingSeats)
+            .FirstOrDefaultAsync(item => item.ShowtimeId == showtimeId);
+        if (show == null || show.Status == ShowtimeStatus.Cancelled)
+        {
+            return RuleResult.Fail("ไม่พบรอบฉาย");
+        }
+
+        if (IsLocked(show))
+        {
+            return RuleResult.Fail("รอบนี้ถูกจองหรือเริ่มฉายแล้ว จึงยกเลิกไม่ได้");
+        }
+
+        show.Status = ShowtimeStatus.Cancelled;
+        await _db.SaveChangesAsync();
+        return RuleResult.Ok("ยกเลิกรอบฉายแล้ว");
     }
 
     private static bool IsLocked(Showtime show) =>

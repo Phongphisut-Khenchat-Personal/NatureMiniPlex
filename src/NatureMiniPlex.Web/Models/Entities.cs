@@ -40,6 +40,7 @@ public class Showtime
     public Movie Movie { get; set; } = null!;
     public DateOnly ShowDate { get; set; }
     public ShowSlot Slot { get; set; }
+    public TimeOnly StartTime { get; set; }
     public ShowtimeStatus Status { get; set; } = ShowtimeStatus.Open;
     public DateTime? StartedAt { get; set; }
     public ICollection<BookingSeat> BookingSeats { get; set; } = new List<BookingSeat>();
@@ -48,6 +49,7 @@ public class Showtime
 public class Booking
 {
     public int BookingId { get; set; }
+    public string BookingCode { get; set; } = "";
     public string PhoneNumber { get; set; } = "";
     public DateTime BookedAt { get; set; }
     public ICollection<BookingSeat> Seats { get; set; } = new List<BookingSeat>();
@@ -64,4 +66,12 @@ public class BookingSeat
     public Seat Seat { get; set; } = null!;
     public BookingSeatStatus Status { get; set; } = BookingSeatStatus.Booked;
     public DateTime? CancelledAt { get; set; }
+}
+
+public class User
+{
+    public int UserId { get; set; }
+    public string Username { get; set; } = "";
+    public string PasswordHash { get; set; } = "";
+    public string Role { get; set; } = "Staff";
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NatureMiniPlex.Web.Models;
+using NatureMiniPlex.Web.Services;
 
 namespace NatureMiniPlex.Web.Data;
 
@@ -45,19 +46,30 @@ public static class DbSeeder
             StopDate = tomorrow,
             Status = MovieStatus.Active
         };
-        db.Movies.AddRange(nice, bad);
+        var later = today.AddDays(5);
+        var bay = new Movie { Title = "แสงสุดท้ายของอ่าว", StartDate = today, StopDate = later, Status = MovieStatus.Active };
+        var night = new Movie { Title = "คืนที่บางแสนไม่หลับ", StartDate = today, StopDate = later, Status = MovieStatus.Active };
+        var neighbor = new Movie { Title = "เพื่อนบ้านข้างโรงหนัง", StartDate = today, StopDate = later, Status = MovieStatus.Active };
+        db.Movies.AddRange(nice, bad, bay, night, neighbor);
         await db.SaveChangesAsync();
 
         var srirachaId = await db.Cinemas.Where(c => c.CinemaName.Contains("ศรีราชา")).Select(c => c.CinemaId).SingleAsync();
         var bangsaenId = await db.Cinemas.Where(c => c.CinemaName.Contains("บางแสน")).Select(c => c.CinemaId).SingleAsync();
+        var dayAfter = today.AddDays(2);
 
         db.Showtimes.AddRange(
             Show(srirachaId, nice.MovieId, today, ShowSlot.Morning),
+            Show(srirachaId, bay.MovieId, today, ShowSlot.Afternoon),
             Show(srirachaId, nice.MovieId, today, ShowSlot.Evening),
             Show(srirachaId, nice.MovieId, tomorrow, ShowSlot.Morning),
             Show(srirachaId, nice.MovieId, tomorrow, ShowSlot.Afternoon),
             Show(srirachaId, nice.MovieId, tomorrow, ShowSlot.Evening),
+            Show(srirachaId, bay.MovieId, dayAfter, ShowSlot.Morning),
+            Show(srirachaId, neighbor.MovieId, dayAfter, ShowSlot.Evening),
+            Show(bangsaenId, night.MovieId, today, ShowSlot.Morning),
+            Show(bangsaenId, neighbor.MovieId, today, ShowSlot.Evening),
             Show(bangsaenId, bad.MovieId, today, ShowSlot.LateNight),
+            Show(bangsaenId, night.MovieId, tomorrow, ShowSlot.Morning),
             Show(bangsaenId, bad.MovieId, tomorrow, ShowSlot.Afternoon),
             Show(bangsaenId, bad.MovieId, tomorrow, ShowSlot.Evening));
         await db.SaveChangesAsync();
@@ -71,8 +83,9 @@ public static class DbSeeder
             .Select(s => s.SeatId)
             .SingleAsync();
 
-        db.Bookings.Add(new Booking
+        var booking = new Booking
         {
+            BookingCode = "NMSEED0001",
             PhoneNumber = "0891111111",
             BookedAt = DateTime.Now,
             Seats =
@@ -84,6 +97,25 @@ public static class DbSeeder
                     Status = BookingSeatStatus.Booked
                 }
             }
+        };
+        db.Bookings.Add(booking);
+        await db.SaveChangesAsync();
+        booking.BookingCode = $"NM{booking.BookedAt:yyyyMMdd}{booking.BookingId:D4}";
+        await db.SaveChangesAsync();
+    }
+
+    public static async Task SeedStaffAsync(AppDbContext db)
+    {
+        if (await db.Users.AnyAsync())
+        {
+            return;
+        }
+
+        db.Users.Add(new User
+        {
+            Username = "admin",
+            PasswordHash = PasswordBox.Hash("Admin@1234"),
+            Role = "Staff"
         });
         await db.SaveChangesAsync();
     }
@@ -94,6 +126,7 @@ public static class DbSeeder
         MovieId = movieId,
         ShowDate = date,
         Slot = slot,
+        StartTime = ShowSlotNames.TimeOf(slot),
         Status = ShowtimeStatus.Open
     };
 }

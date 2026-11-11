@@ -20,6 +20,15 @@ public class MovieService
     public Task<Movie?> FindAsync(int movieId) =>
         _db.Movies.FirstOrDefaultAsync(movie => movie.MovieId == movieId);
 
+    public Task<List<Movie>> ShowingAsync()
+    {
+        var today = AppClock.Today;
+        return _db.Movies
+            .Where(movie => movie.Status == MovieStatus.Active && movie.StopDate >= today)
+            .OrderBy(movie => movie.Title)
+            .ToListAsync();
+    }
+
     public Task<List<Movie>> ActiveOnAsync(DateOnly date) =>
         _db.Movies
             .Where(movie => movie.Status == MovieStatus.Active && movie.StartDate <= date && movie.StopDate >= date)

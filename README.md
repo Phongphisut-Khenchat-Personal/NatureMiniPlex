@@ -1,6 +1,8 @@
 # Nature MiniPlex
 
-ระบบจองตั๋วของพนักงานขายตั๋ว สำหรับโรงหนัง 2 สาขา ใช้ ASP.NET Core MVC, Entity Framework Core และ SQL Server Express
+ระบบจองตั๋วหนังของ Nature MiniPlex มีสองฝั่ง ลูกค้าเลือกเรื่อง โรง รอบ และที่นั่งได้เอง พนักงานเข้าสู่ระบบเพื่อจัดการเรื่อง รอบฉาย และดูรายงาน
+
+หน้าเว็บเป็น React หลังบ้านเป็น ASP.NET Core Web API, Entity Framework Core และ SQL Server Express
 
 ## เปิดโปรแกรม
 
@@ -8,9 +10,13 @@
 2. ที่โฟลเดอร์นี้ รัน `docker compose up -d` เพื่อเปิด SQL Server Express
 3. รัน `dotnet tool restore` ครั้งแรก เพื่อใช้คำสั่ง migration
 4. รัน `dotnet run --project src/NatureMiniPlex.Web --launch-profile http`
-5. เปิด http://localhost:5274
+5. เปิดอีกเทอร์มินัลที่โฟลเดอร์ `frontend` แล้วรัน `npm install` ครั้งแรก จากนั้นรัน `npm run dev`
+6. เปิดเว็บลูกค้าที่ http://localhost:5173
+7. เปิด Swagger ที่ http://localhost:5274/swagger
 
-ครั้งแรกที่เปิดเว็บ โปรแกรมสร้างตารางเองและใส่ข้อมูลตัวอย่างของวันนี้กับพรุ่งนี้
+ครั้งแรกที่เปิด API โปรแกรมสร้างตารางเองและใส่ข้อมูลตัวอย่างของวันนี้กับพรุ่งนี้
+
+พนักงานตัวอย่างใช้ชื่อ `admin` และรหัส `Admin@1234` จากปุ่มเข้าสู่ระบบบนหน้าเว็บ ลูกค้าไม่ต้องสมัครสมาชิก ใช้เบอร์โทร 10 หลักเป็นหลักฐานการจอง
 
 รหัส `sa` ใน `docker-compose.yml` และ `appsettings.json` ใช้กับฐานข้อมูลในเครื่องนี้เท่านั้น
 

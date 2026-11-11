@@ -33,12 +33,20 @@ namespace NatureMiniPlex.Web.Data.Migrations
                     b.Property<DateTime>("BookedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("BookingCode")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
                     b.HasKey("BookingId");
+
+                    b.HasIndex("BookingCode")
+                        .IsUnique();
 
                     b.HasIndex("PhoneNumber");
 
@@ -186,6 +194,9 @@ namespace NatureMiniPlex.Web.Data.Migrations
                     b.Property<int>("Slot")
                         .HasColumnType("int");
 
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time");
+
                     b.Property<DateTime?>("StartedAt")
                         .HasColumnType("datetime2");
 
@@ -200,6 +211,37 @@ namespace NatureMiniPlex.Web.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Showtimes");
+                });
+
+            modelBuilder.Entity("NatureMiniPlex.Web.Models.User", b =>
+                {
+                    b.Property<int>("UserId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.HasKey("UserId");
+
+                    b.HasIndex("Username")
+                        .IsUnique();
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("NatureMiniPlex.Web.Models.BookingSeat", b =>

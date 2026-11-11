@@ -1,15 +1,66 @@
 using System.Globalization;
+using System.Text;
+using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Localization;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using NatureMiniPlex.Web.Data;
 using NatureMiniPlex.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllersWithViews(options =>
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
 {
-    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "Nature MiniPlex", Version = "v1" });
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "ใส่ token ของพนักงาน โดยไม่ต้องพิมพ์คำว่า Bearer"
+    });
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            []
+        }
+    });
+});
+
+var jwtKey = builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("ยังไม่ได้ตั้ง Jwt:Key");
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["Jwt:Issuer"],
+            ValidAudience = builder.Configuration["Jwt:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
+        };
+    });
+builder.Services.AddAuthorization();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+        policy.WithOrigins("http://localhost:5173").AllowAnyHeader().AllowAnyMethod());
 });
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
@@ -17,13 +68,7 @@ builder.Services.AddScoped<MovieService>();
 builder.Services.AddScoped<ScheduleService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<ReportService>();
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromHours(8);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
+builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
 
@@ -38,6 +83,7 @@ await using (var scope = app.Services.CreateAsyncScope())
             await db.Database.MigrateAsync();
             await DbSeeder.SeedCinemasAsync(db);
             await DbSeeder.SeedDemoAsync(db);
+            await DbSeeder.SeedStaffAsync(db);
             break;
         }
         catch (Exception) when (attempt < attempts)
@@ -47,8 +93,6 @@ await using (var scope = app.Services.CreateAsyncScope())
     }
 }
 
-// หน้าเว็บเป็นภาษาไทย แต่ช่องวันที่ต้องเป็นปี ค.ศ.
-// ถ้าใช้ปฏิทิน พ.ศ. ของ th-TH ช่อง date จะกลายเป็น 2569 และบันทึกผิดวัน
 var thai = new CultureInfo("th-TH");
 thai.DateTimeFormat.Calendar = new GregorianCalendar();
 app.UseRequestLocalization(new RequestLocalizationOptions
@@ -58,20 +102,18 @@ app.UseRequestLocalization(new RequestLocalizationOptions
     SupportedUICultures = [thai]
 });
 
-if (!app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseStaticFiles();
 app.UseRouting();
-app.UseSession();
+app.UseCors();
+app.UseAuthentication();
 app.UseAuthorization();
-app.MapStaticAssets();
-app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
+app.MapControllers();
+app.MapFallbackToFile("index.html");
 
 app.Run();

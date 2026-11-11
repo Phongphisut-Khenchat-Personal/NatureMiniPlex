@@ -25,7 +25,7 @@ public class BookingService
             .ToListAsync();
     }
 
-    public async Task<SeatMapView?> GetSeatMapAsync(int showtimeId, IReadOnlyCollection<CartLine> cart)
+    public async Task<SeatMapView?> GetSeatMapAsync(int showtimeId)
     {
         var show = await _db.Showtimes
             .Include(item => item.Cinema)
@@ -41,7 +41,6 @@ public class BookingService
             .Where(item => item.ShowtimeId == showtimeId && item.Status == BookingSeatStatus.Booked)
             .Select(item => item.SeatId)
             .ToListAsync();
-        var cartIds = cart.Where(line => line.ShowtimeId == showtimeId).Select(line => line.SeatId).ToHashSet();
 
         var closed = show.Status != ShowtimeStatus.Open || show.ShowDate < AppClock.Today;
         var reason = show.Status == ShowtimeStatus.Started
@@ -59,6 +58,7 @@ public class BookingService
             MovieTitle = show.Movie.Title,
             ShowDate = show.ShowDate,
             Slot = show.Slot,
+            Time = ShowSlotNames.Clock(show.Slot),
             ColumnCount = show.Cinema.ColumnCount,
             Closed = closed,
             ClosedReason = reason,
@@ -68,8 +68,7 @@ public class BookingService
                 SeatRow = seat.SeatRow,
                 SeatColumn = seat.SeatColumn,
                 SeatCode = seat.SeatCode,
-                Booked = bookedIds.Contains(seat.SeatId),
-                InCart = cartIds.Contains(seat.SeatId)
+                Booked = bookedIds.Contains(seat.SeatId)
             }).ToList()
         };
     }
@@ -104,6 +103,65 @@ public class BookingService
             return new CancelSeatRow
             {
                 BookingSeatId = item.BookingSeatId,
+                CinemaName = item.Showtime.Cinema.CinemaName,
+                MovieTitle = item.Showtime.Movie.Title,
+                ShowDate = item.Showtime.ShowDate,
+                Slot = item.Showtime.Slot,
+                SeatCode = item.Seat.SeatCode,
+                CanCancel = open,
+                Reason = reason
+            };
+        }).ToList();
+    }
+
+    public async Task<List<CancelSeatRow>> FindAsync(string? phone, string? code)
+    {
+        var normalized = PhoneNumber.Normalize(phone);
+        var bookingCode = code?.Trim();
+        if (normalized == null && string.IsNullOrWhiteSpace(bookingCode))
+        {
+            return [];
+        }
+
+        var query = _db.BookingSeats
+            .Include(item => item.Booking)
+            .Include(item => item.Showtime).ThenInclude(show => show.Cinema)
+            .Include(item => item.Showtime).ThenInclude(show => show.Movie)
+            .Include(item => item.Seat)
+            .AsQueryable();
+        if (normalized != null)
+        {
+            query = query.Where(item => item.Booking.PhoneNumber == normalized);
+        }
+
+        if (!string.IsNullOrWhiteSpace(bookingCode))
+        {
+            query = query.Where(item => item.Booking.BookingCode == bookingCode);
+        }
+
+        var items = await query
+            .OrderByDescending(item => item.Booking.BookedAt)
+            .ThenBy(item => item.Showtime.ShowDate)
+            .ThenBy(item => item.Seat.SeatCode)
+            .ToListAsync();
+
+        var today = AppClock.Today;
+        return items.Select(item =>
+        {
+            var open = item.Status == BookingSeatStatus.Booked
+                && item.Showtime.Status == ShowtimeStatus.Open
+                && item.Showtime.ShowDate >= today;
+            var reason = item.Status == BookingSeatStatus.Cancelled
+                ? "ยกเลิกแล้ว"
+                : item.Showtime.Status == ShowtimeStatus.Started
+                    ? "เริ่มฉายแล้ว"
+                    : item.Showtime.ShowDate < today
+                        ? "เลยวันฉายแล้ว"
+                        : "";
+            return new CancelSeatRow
+            {
+                BookingSeatId = item.BookingSeatId,
+                BookingCode = item.Booking.BookingCode,
                 CinemaName = item.Showtime.Cinema.CinemaName,
                 MovieTitle = item.Showtime.Movie.Title,
                 ShowDate = item.Showtime.ShowDate,
@@ -245,10 +303,12 @@ public class BookingService
             }
         }
 
+        var bookedAt = DateTime.Now;
         var booking = new Booking
         {
+            BookingCode = "TMP" + Guid.NewGuid().ToString("N"),
             PhoneNumber = phone,
-            BookedAt = DateTime.Now
+            BookedAt = bookedAt
         };
         foreach (var pick in picks)
         {
@@ -262,6 +322,8 @@ public class BookingService
 
         _db.Bookings.Add(booking);
         await _db.SaveChangesAsync();
-        return RuleResult.Ok("จองตั๋วแล้ว");
+        booking.BookingCode = $"NM{bookedAt:yyyyMMdd}{booking.BookingId:D4}";
+        await _db.SaveChangesAsync();
+        return RuleResult.Ok("จองตั๋วแล้ว", booking.BookingCode);
     }
 }

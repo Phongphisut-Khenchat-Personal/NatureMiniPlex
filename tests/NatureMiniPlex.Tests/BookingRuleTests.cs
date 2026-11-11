@@ -41,6 +41,7 @@ public class BookingRuleTests : IAsyncLifetime
         var result = await Book("0812345678", new SeatPick(showId, seatId));
 
         Assert.True(result.Success, result.Message);
+        Assert.StartsWith("NM", result.Code);
         await using var db = CreateContext();
         Assert.Equal(1, await db.BookingSeats.CountAsync(item => item.Status == BookingSeatStatus.Booked));
     }
@@ -218,6 +219,24 @@ public class BookingRuleTests : IAsyncLifetime
         var result = await Book("0812345678", new SeatPick(showId, await SeatId(_sriracha, "A-หลัง")));
 
         Assert.False(result.Success);
+    }
+
+    [Fact]
+    public async Task Two_movies_can_share_one_cinema_on_the_same_day()
+    {
+        var today = AppClock.Today;
+        await using var db = CreateContext();
+        var movies = new MovieService(db);
+        Assert.True((await movies.CreateAsync("Morning Film", today, today)).Success);
+        Assert.True((await movies.CreateAsync("Evening Film", today, today)).Success);
+        var morningMovie = await db.Movies.Where(movie => movie.Title == "Morning Film").Select(movie => movie.MovieId).SingleAsync();
+        var eveningMovie = await db.Movies.Where(movie => movie.Title == "Evening Film").Select(movie => movie.MovieId).SingleAsync();
+        var schedule = new ScheduleService(db);
+
+        Assert.True((await schedule.CreateAsync(_sriracha, morningMovie, today, ShowSlot.Morning)).Success);
+        Assert.True((await schedule.CreateAsync(_sriracha, eveningMovie, today, ShowSlot.Evening)).Success);
+        Assert.True((await schedule.CreateAsync(_sriracha, morningMovie, today, ShowSlot.Afternoon)).Success);
+        Assert.False((await schedule.CreateAsync(_sriracha, eveningMovie, today, ShowSlot.LateNight)).Success);
     }
 
     private static AppDbContext CreateContext() => AppDbContextFactory.Create(ConnectionString);

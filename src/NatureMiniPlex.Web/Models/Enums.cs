@@ -71,6 +71,18 @@ public static class ShowSlotNames
         ShowSlot.LateNight => "ดึก",
         _ => slot.ToString()
     };
+
+    // แต่ละช่วงมีเวลาตายตัว โรงเดียวกันจึงไม่มีรอบที่เวลาชนกัน
+    public static TimeOnly TimeOf(ShowSlot slot) => slot switch
+    {
+        ShowSlot.Morning => new TimeOnly(10, 0),
+        ShowSlot.Afternoon => new TimeOnly(13, 0),
+        ShowSlot.Evening => new TimeOnly(16, 0),
+        ShowSlot.LateNight => new TimeOnly(20, 0),
+        _ => new TimeOnly(10, 0)
+    };
+
+    public static string Clock(ShowSlot slot) => TimeOf(slot).ToString("HH:mm");
 }
 
 public static class StatusNames
