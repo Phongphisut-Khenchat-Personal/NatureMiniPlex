@@ -79,7 +79,7 @@ flowchart LR
   staff[พนักงาน]
   customer --> browse[ดูเรื่อง โรง และรอบ]
   customer --> book[จอง 1 ถึง 4 ที่นั่ง]
-  customer --> lookup[ค้นด้วยเบอร์หรือรหัส]
+  customer --> lookup[ค้นด้วยเบอร์โทร]
   customer --> cancel[ยกเลิกที่นั่งของเบอร์ตัวเอง]
   staff --> login[เข้าสู่ระบบ]
   staff --> movie[จัดการเรื่องหนัง]
