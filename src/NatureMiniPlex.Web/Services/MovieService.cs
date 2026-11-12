@@ -35,7 +35,7 @@ public class MovieService
             .OrderBy(movie => movie.Title)
             .ToListAsync();
 
-    public async Task<RuleResult> CreateAsync(string title, DateOnly startDate, DateOnly stopDate)
+    public async Task<RuleResult> CreateAsync(string title, DateOnly startDate, DateOnly stopDate, bool recommended = false)
     {
         var error = Validate(title, startDate, stopDate);
         if (error != null)
@@ -43,18 +43,34 @@ public class MovieService
             return RuleResult.Fail(error);
         }
 
-        _db.Movies.Add(new Movie
+        var movie = new Movie
         {
             Title = title.Trim(),
             StartDate = startDate,
             StopDate = stopDate,
+            IsRecommended = recommended,
             Status = MovieStatus.Active
-        });
+        };
+        _db.Movies.Add(movie);
         await _db.SaveChangesAsync();
-        return RuleResult.Ok("เพิ่มเรื่องหนังแล้ว");
+        return RuleResult.Ok("เพิ่มเรื่องหนังแล้ว", movie.MovieId);
     }
 
-    public async Task<RuleResult> UpdateAsync(int movieId, string title, DateOnly startDate, DateOnly stopDate)
+    public async Task<(RuleResult Result, string? PreviousFile)> SetPosterAsync(int movieId, string fileName)
+    {
+        var movie = await FindAsync(movieId);
+        if (movie == null)
+        {
+            return (RuleResult.Fail("ไม่พบเรื่องหนัง"), null);
+        }
+
+        var previous = movie.PosterFileName;
+        movie.PosterFileName = fileName;
+        await _db.SaveChangesAsync();
+        return (RuleResult.Ok("บันทึกโปสเตอร์แล้ว"), previous);
+    }
+
+    public async Task<RuleResult> UpdateAsync(int movieId, string title, DateOnly startDate, DateOnly stopDate, bool recommended = false)
     {
         var movie = await FindAsync(movieId);
         if (movie == null || movie.Status != MovieStatus.Active)
@@ -80,6 +96,7 @@ public class MovieService
         movie.Title = title.Trim();
         movie.StartDate = startDate;
         movie.StopDate = stopDate;
+        movie.IsRecommended = recommended;
         await _db.SaveChangesAsync();
         return RuleResult.Ok("แก้ไขเรื่องหนังแล้ว");
     }

@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
-import { Poster } from '../../components/Poster.jsx'
+import Alert from '@mui/material/Alert'
+import Container from '@mui/material/Container'
+import Grid from '@mui/material/Grid'
+import Typography from '@mui/material/Typography'
+import { MovieCard } from '../../components/MovieCard.jsx'
 import { SiteHeader } from '../../components/SiteHeader.jsx'
 import { api } from '../../services/api.js'
 
@@ -12,17 +16,19 @@ export function Movies() {
   }, [])
 
   return (
-    <div className="customer">
+    <>
       <SiteHeader />
-      <section className="sheet">
-        <div className="section-head">
-          <h2>รายการภาพยนตร์</h2>
-        </div>
-        {error && <p className="error">{error}</p>}
-        <div className="poster-grid">
-          {movies.map(movie => <Poster key={movie.movieId} movie={movie} />)}
-        </div>
-      </section>
-    </div>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Typography variant="h4" gutterBottom>รายการภาพยนตร์</Typography>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        <Grid container spacing={2}>
+          {movies.map(movie => (
+            <Grid key={movie.movieId} size={{ xs: 12, sm: 6, md: 3 }}>
+              <MovieCard movie={movie} />
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </>
   )
 }

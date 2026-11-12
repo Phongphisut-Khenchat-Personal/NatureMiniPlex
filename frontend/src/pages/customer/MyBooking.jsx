@@ -1,11 +1,20 @@
 import { useState } from 'react'
+import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Checkbox from '@mui/material/Checkbox'
+import Container from '@mui/material/Container'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Stack from '@mui/material/Stack'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { SiteHeader } from '../../components/SiteHeader.jsx'
 import { api } from '../../services/api.js'
 import { slotLabel, thaiDay } from '../../services/format.js'
 
 export function MyBooking() {
   const [phone, setPhone] = useState('')
-  const [code, setCode] = useState('')
   const [rows, setRows] = useState(null)
   const [selected, setSelected] = useState([])
   const [error, setError] = useState('')
@@ -16,11 +25,14 @@ export function MyBooking() {
     setError('')
     setMessage('')
     setSelected([])
-    const params = new URLSearchParams()
-    if (phone.trim()) params.set('phone', phone.trim())
-    if (code.trim()) params.set('code', code.trim())
+    const normalized = phone.replace(/\D/g, '')
+    if (!/^0\d{9}$/.test(normalized)) {
+      setRows(null)
+      setError('กรุณากรอกเบอร์โทร 10 หลัก ขึ้นต้นด้วย 0')
+      return
+    }
     try {
-      setRows(await api(`/api/bookings?${params.toString()}`))
+      setRows(await api(`/api/bookings?phone=${encodeURIComponent(normalized)}`))
     } catch (reason) {
       setError(reason.message)
     }
@@ -37,13 +49,10 @@ export function MyBooking() {
     try {
       const result = await api('/api/bookings/cancel', {
         method: 'POST',
-        body: JSON.stringify({ phone, bookingSeatIds: selected })
+        body: JSON.stringify({ phone: phone.replace(/\D/g, ''), bookingSeatIds: selected })
       })
       setMessage(result.message)
-      const params = new URLSearchParams()
-      if (phone.trim()) params.set('phone', phone.trim())
-      if (code.trim()) params.set('code', code.trim())
-      setRows(await api(`/api/bookings?${params.toString()}`))
+      setRows(await api(`/api/bookings?phone=${encodeURIComponent(phone.replace(/\D/g, ''))}`))
       setSelected([])
     } catch (reason) {
       setError(reason.message)
@@ -51,46 +60,60 @@ export function MyBooking() {
   }
 
   return (
-    <div className="customer">
+    <>
       <SiteHeader />
-      <section className="sheet narrow">
-        <h1>ตรวจสอบการจอง</h1>
-        <p>ค้นด้วยเบอร์โทรหรือรหัสการจอง ยกเลิกได้เฉพาะที่นั่งของเบอร์นั้น และทำไม่ได้หลังรอบเริ่มฉาย</p>
-        <form onSubmit={search} className="stack">
-          <label>
-            เบอร์โทรศัพท์
-            <input value={phone} onChange={event => setPhone(event.target.value)} placeholder="08xxxxxxxx" />
-          </label>
-          <label>
-            รหัสการจอง
-            <input value={code} onChange={event => setCode(event.target.value)} placeholder="NM..." />
-          </label>
-          <button className="btn" type="submit">ค้นหา</button>
-        </form>
-        {error && <p className="error">{error}</p>}
-        {message && <p className="ok">{message}</p>}
-        {rows && rows.length === 0 && <p>ไม่พบรายการจอง</p>}
+      <Container maxWidth="sm" sx={{ py: 4 }}>
+        <Typography variant="h4" gutterBottom>ตรวจสอบการจอง</Typography>
+        <Typography color="text.secondary" sx={{ mb: 2 }}>
+          ใส่เบอร์ที่ใช้จอง ระบบจะแสดงทุกที่นั่งของเบอร์นั้น ยกเลิกได้ก่อนรอบเริ่มฉาย
+        </Typography>
+        <Card>
+          <CardContent>
+            <form onSubmit={search}>
+              <Stack spacing={2}>
+                <TextField label="เบอร์โทรศัพท์" value={phone} onChange={event => setPhone(event.target.value)} placeholder="08xxxxxxxx" inputMode="numeric" required />
+                <Button type="submit" variant="contained">ค้นหา</Button>
+              </Stack>
+            </form>
+          </CardContent>
+        </Card>
+        {error && <Alert severity="error" sx={{ mt: 2 }}>{error}</Alert>}
+        {message && <Alert severity="success" sx={{ mt: 2 }}>{message}</Alert>}
+        {rows && rows.length === 0 && <Alert severity="info" sx={{ mt: 2 }}>ไม่พบรายการจอง</Alert>}
         {rows && rows.length > 0 && (
-          <form onSubmit={cancelBooking} className="stack">
-            {rows.map(row => (
-              <label key={row.bookingSeatId} className="line">
-                <input
-                  type="checkbox"
-                  checked={selected.includes(row.bookingSeatId)}
-                  disabled={!row.canCancel}
-                  onChange={() => toggle(row.bookingSeatId)}
-                />
-                <div>
-                  <strong>{row.bookingCode} · {row.movieTitle}</strong>
-                  <span>{row.cinemaName} · {thaiDay(row.showDate)} · รอบ{slotLabel(row.slot)} · {row.seatCode}</span>
-                  {row.reason && <em>{row.reason}</em>}
-                </div>
-              </label>
-            ))}
-            <button className="btn btn-danger" type="submit" disabled={selected.length === 0}>ยกเลิกที่นั่งที่เลือก</button>
-          </form>
+          <Card sx={{ mt: 2 }}>
+            <CardContent>
+              <form onSubmit={cancelBooking}>
+                <Stack spacing={1}>
+                  {rows.map(row => (
+                    <FormControlLabel
+                      key={row.bookingSeatId}
+                      control={
+                        <Checkbox
+                          checked={selected.includes(row.bookingSeatId)}
+                          disabled={!row.canCancel}
+                          onChange={() => toggle(row.bookingSeatId)}
+                        />
+                      }
+                      label={
+                        <span>
+                          <strong>{row.bookingCode} · {row.movieTitle}</strong>
+                          <br />
+                          {row.cinemaName} · {thaiDay(row.showDate)} · รอบ{slotLabel(row.slot)} · {row.seatCode}
+                          {row.reason ? ` · ${row.reason}` : ''}
+                        </span>
+                      }
+                    />
+                  ))}
+                  <Button type="submit" variant="contained" color="error" disabled={selected.length === 0}>
+                    ยกเลิกที่นั่งที่เลือก
+                  </Button>
+                </Stack>
+              </form>
+            </CardContent>
+          </Card>
         )}
-      </section>
-    </div>
+      </Container>
+    </>
   )
 }

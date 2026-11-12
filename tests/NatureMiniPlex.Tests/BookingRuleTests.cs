@@ -239,6 +239,67 @@ public class BookingRuleTests : IAsyncLifetime
         Assert.False((await schedule.CreateAsync(_sriracha, eveningMovie, today, ShowSlot.LateNight)).Success);
     }
 
+    [Fact]
+    public async Task Closing_a_booked_seat_on_an_open_show_fails()
+    {
+        var today = AppClock.Today;
+        await SaveShow(_sriracha, today, today, today, "Repair Held", ShowSlot.Morning);
+        var showId = await ShowId(_sriracha, today, ShowSlot.Morning);
+        var seatId = await SeatId(_sriracha, "A-หน้า");
+        Assert.True((await Book("0812345678", new SeatPick(showId, seatId))).Success);
+
+        await using var db = CreateContext();
+        var result = await new CinemaService(db).SetSeatClosedAsync(_sriracha, seatId, true);
+
+        Assert.False(result.Success);
+        Assert.False(await db.Seats.Where(seat => seat.SeatId == seatId).Select(seat => seat.IsClosed).SingleAsync());
+    }
+
+    [Fact]
+    public async Task A_closed_seat_cannot_be_booked_until_it_reopens()
+    {
+        var today = AppClock.Today;
+        await SaveShow(_sriracha, today, today, today, "Repair Free", ShowSlot.Afternoon);
+        var showId = await ShowId(_sriracha, today, ShowSlot.Afternoon);
+        var seatId = await SeatId(_sriracha, "B-หน้า");
+        await using var db = CreateContext();
+        Assert.True((await new CinemaService(db).SetSeatClosedAsync(_sriracha, seatId, true)).Success);
+
+        Assert.False((await Book("0812345678", new SeatPick(showId, seatId))).Success);
+
+        await using var again = CreateContext();
+        Assert.True((await new CinemaService(again).SetSeatClosedAsync(_sriracha, seatId, false)).Success);
+        Assert.True((await Book("0812345678", new SeatPick(showId, seatId))).Success);
+    }
+
+    [Fact]
+    public async Task A_cinema_with_a_showtime_cannot_be_deleted()
+    {
+        var today = AppClock.Today;
+        await SaveShow(_sriracha, today, today, today, "Keep Cinema", ShowSlot.Evening);
+        await using var db = CreateContext();
+
+        var result = await new CinemaService(db).RemoveAsync(_sriracha);
+
+        Assert.False(result.Success);
+        Assert.True(await db.Cinemas.AnyAsync(cinema => cinema.CinemaId == _sriracha));
+    }
+
+    [Fact]
+    public async Task An_empty_cinema_can_be_deleted_with_its_seats()
+    {
+        await using var db = CreateContext();
+        var cinemas = new CinemaService(db);
+        var created = await cinemas.CreateAsync("โรงชั่วคราว", "Six");
+        Assert.True(created.Success);
+        var cinemaId = created.Id!.Value;
+        Assert.Equal(6, await db.Seats.CountAsync(seat => seat.CinemaId == cinemaId));
+
+        Assert.True((await cinemas.RemoveAsync(cinemaId)).Success);
+        Assert.False(await db.Cinemas.AnyAsync(cinema => cinema.CinemaId == cinemaId));
+        Assert.Equal(0, await db.Seats.CountAsync(seat => seat.CinemaId == cinemaId));
+    }
+
     private static AppDbContext CreateContext() => AppDbContextFactory.Create(ConnectionString);
 
     private async Task<RuleResult> SaveShow(int cinemaId, DateOnly showDate, DateOnly start, DateOnly stop, string title, params ShowSlot[] slots)

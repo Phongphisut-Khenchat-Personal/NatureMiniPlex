@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
             entity.Property(seat => seat.SeatRow).HasMaxLength(20).IsRequired();
             entity.Property(seat => seat.SeatColumn).HasMaxLength(1).IsRequired();
             entity.Property(seat => seat.SeatCode).HasMaxLength(20).IsRequired();
+            entity.Property(seat => seat.IsClosed).HasDefaultValue(false);
             entity.HasIndex(seat => new { seat.CinemaId, seat.SeatCode }).IsUnique();
             entity.HasOne(seat => seat.Cinema)
                 .WithMany(cinema => cinema.Seats)
@@ -39,6 +40,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Movie>(entity =>
         {
             entity.Property(movie => movie.Title).HasMaxLength(200).IsRequired();
+            entity.Property(movie => movie.PosterFileName).HasMaxLength(80);
+            entity.Property(movie => movie.IsRecommended).HasDefaultValue(false);
         });
 
         modelBuilder.Entity<Showtime>(entity =>

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NatureMiniPlex.Web.Data;
+using NatureMiniPlex.Web.DTOs;
 using NatureMiniPlex.Web.Models;
 
 namespace NatureMiniPlex.Web.Services;
@@ -11,19 +12,6 @@ public class BookingService
     private readonly AppDbContext _db;
 
     public BookingService(AppDbContext db) => _db = db;
-
-    public Task<List<Showtime>> OpenShowtimesAsync()
-    {
-        var today = AppClock.Today;
-        return _db.Showtimes
-            .Include(show => show.Cinema)
-            .Include(show => show.Movie)
-            .Where(show => show.Status == ShowtimeStatus.Open && show.ShowDate >= today)
-            .OrderBy(show => show.ShowDate)
-            .ThenBy(show => show.CinemaId)
-            .ThenBy(show => show.Slot)
-            .ToListAsync();
-    }
 
     public async Task<SeatMapView?> GetSeatMapAsync(int showtimeId)
     {
@@ -68,7 +56,8 @@ public class BookingService
                 SeatRow = seat.SeatRow,
                 SeatColumn = seat.SeatColumn,
                 SeatCode = seat.SeatCode,
-                Booked = bookedIds.Contains(seat.SeatId)
+                Booked = bookedIds.Contains(seat.SeatId),
+                Closed = seat.IsClosed
             }).ToList()
         };
     }
@@ -288,6 +277,11 @@ public class BookingService
             if (seat.CinemaId != show.CinemaId)
             {
                 return RuleResult.Fail("ที่นั่งไม่ได้อยู่ในโรงของรอบที่เลือก");
+            }
+
+            if (seat.IsClosed)
+            {
+                return RuleResult.Fail("มีที่นั่งที่ปิดซ่อม จึงจองไม่ได้");
             }
         }
 

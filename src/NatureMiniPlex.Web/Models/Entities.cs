@@ -18,6 +18,7 @@ public class Seat
     public string SeatRow { get; set; } = "";
     public string SeatColumn { get; set; } = "";
     public string SeatCode { get; set; } = "";
+    public bool IsClosed { get; set; }
     public ICollection<BookingSeat> BookingSeats { get; set; } = new List<BookingSeat>();
 }
 
@@ -25,8 +26,10 @@ public class Movie
 {
     public int MovieId { get; set; }
     public string Title { get; set; } = "";
+    public string? PosterFileName { get; set; }
     public DateOnly StartDate { get; set; }
     public DateOnly StopDate { get; set; }
+    public bool IsRecommended { get; set; }
     public MovieStatus Status { get; set; } = MovieStatus.Active;
     public ICollection<Showtime> Showtimes { get; set; } = new List<Showtime>();
 }

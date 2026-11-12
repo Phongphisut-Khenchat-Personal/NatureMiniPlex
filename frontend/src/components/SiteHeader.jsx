@@ -1,32 +1,60 @@
+import AppBar from '@mui/material/AppBar'
+import Badge from '@mui/material/Badge'
+import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Toolbar from '@mui/material/Toolbar'
+import Typography from '@mui/material/Typography'
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber'
+import TheatersIcon from '@mui/icons-material/Theaters'
 import { Link, NavLink } from 'react-router-dom'
 import { useCart } from './CartContext.jsx'
 
-export function Logo() {
-  return (
-    <Link to="/" className="logo">
-      <span className="logo-mark" aria-hidden="true" />
-      <span>
-        <strong>Nature</strong>
-        MiniPlex
-      </span>
-    </Link>
-  )
-}
+const links = [
+  ['/', 'หน้าแรก', true],
+  ['/movies', 'รายการภาพยนตร์', false],
+  ['/my-booking', 'ตรวจสอบการจอง', false]
+]
 
 export function SiteHeader() {
   const { lines } = useCart()
   return (
-    <header className="topbar">
-      <Logo />
-      <nav className="topnav">
-        <NavLink to="/" end>หน้าแรก</NavLink>
-        <NavLink to="/movies">รายการภาพยนตร์</NavLink>
-        <NavLink to="/my-booking">ตรวจสอบการจอง</NavLink>
-      </nav>
-      <div className="top-actions">
-        <Link to="/checkout" className="cart-link">ตั๋วที่เลือก {lines.length}/4</Link>
-        <Link to="/admin/login" className="login-pill">เข้าสู่ระบบ</Link>
-      </div>
-    </header>
+    <AppBar position="sticky" elevation={0}>
+      <Toolbar>
+        <TheatersIcon color="primary" sx={{ mr: 1 }} />
+        <Typography
+          variant="h6"
+          component={Link}
+          to="/"
+          sx={{ color: 'inherit', textDecoration: 'none', fontWeight: 700, mr: 2 }}
+        >
+          Nature MiniPlex
+        </Typography>
+        <Box sx={{ display: 'flex', gap: 0.5, flexGrow: 1, flexWrap: 'wrap' }}>
+          {links.map(([to, label, end]) => (
+            <Button
+              key={to}
+              component={NavLink}
+              to={to}
+              end={end}
+              color="inherit"
+              sx={{ '&.active': { color: 'primary.main' } }}
+            >
+              {label}
+            </Button>
+          ))}
+        </Box>
+        <Box sx={{ flexGrow: { xs: 1, md: 0 } }} />
+        <Button component={Link} to="/checkout" color="inherit" startIcon={
+          <Badge badgeContent={lines.length} color="primary">
+            <ConfirmationNumberIcon />
+          </Badge>
+        }>
+          ตั๋ว
+        </Button>
+        <Button component={Link} to="/admin/login" variant="contained" sx={{ ml: 1 }}>
+          เข้าสู่ระบบ
+        </Button>
+      </Toolbar>
+    </AppBar>
   )
 }

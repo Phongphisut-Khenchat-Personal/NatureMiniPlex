@@ -1,4 +1,20 @@
 import { useEffect, useState } from 'react'
+import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import Grid from '@mui/material/Grid'
+import MenuItem from '@mui/material/MenuItem'
+import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { AdminShell } from '../../components/AdminShell.jsx'
 import { api } from '../../services/api.js'
 import { showStatus, slotLabel, thaiDay, todayIso } from '../../services/format.js'
@@ -30,53 +46,83 @@ export function Reports() {
 
   return (
     <AdminShell>
-      <h1>รายงาน</h1>
-      <form onSubmit={load} className="form-row">
-        <label>จากวันที่<input type="date" value={from} onChange={event => setFrom(event.target.value)} /></label>
-        <label>ถึงวันที่<input type="date" value={to} onChange={event => setTo(event.target.value)} /></label>
-        <label>สาขา
-          <select value={cinemaId} onChange={event => setCinemaId(event.target.value)}>
-            <option value="">ทุกสาขา</option>
-            {cinemas.map(cinema => <option key={cinema.cinemaId} value={cinema.cinemaId}>{cinema.cinemaName}</option>)}
-          </select>
-        </label>
-        <button className="btn" type="submit">ดูรายงาน</button>
-      </form>
-      {error && <p className="error">{error}</p>}
+      <Typography variant="h4" gutterBottom>รายงาน</Typography>
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <form onSubmit={load}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <TextField label="จากวันที่" type="date" value={from} onChange={event => setFrom(event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
+            <TextField label="ถึงวันที่" type="date" value={to} onChange={event => setTo(event.target.value)} slotProps={{ inputLabel: { shrink: true } }} />
+            <TextField select label="สาขา" value={cinemaId} onChange={event => setCinemaId(event.target.value)} sx={{ minWidth: 180 }}>
+              <MenuItem value="">ทุกสาขา</MenuItem>
+              {cinemas.map(cinema => <MenuItem key={cinema.cinemaId} value={String(cinema.cinemaId)}>{cinema.cinemaName}</MenuItem>)}
+            </TextField>
+            <Button type="submit" variant="contained">ดูรายงาน</Button>
+          </Stack>
+        </form>
+      </Paper>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {page && (
-        <>
-          <section className="stats">
-            <article><span>ที่นั่งที่ถูกจอง</span><strong>{booked}</strong></article>
-            <article><span>ที่นั่งว่าง</span><strong>{free}</strong></article>
-            <article><span>จำนวนรอบ</span><strong>{page.shows.length}</strong></article>
-          </section>
-          <h2>แยกตามภาพยนตร์</h2>
-          <table>
-            <thead><tr><th>เรื่อง</th><th>ที่นั่งที่ถูกจอง</th></tr></thead>
-            <tbody>
-              {page.movies.map(movie => (
-                <tr key={movie.title}><td>{movie.title}</td><td>{movie.bookedSeats}</td></tr>
-              ))}
-            </tbody>
-          </table>
-          <h2>แยกตามรอบฉาย</h2>
-          <table>
-            <thead><tr><th>วันที่</th><th>โรง</th><th>เรื่อง</th><th>รอบ</th><th>จอง</th><th>ว่าง</th><th>สถานะ</th></tr></thead>
-            <tbody>
-              {page.shows.map(show => (
-                <tr key={show.showtimeId}>
-                  <td>{thaiDay(show.showDate)}</td>
-                  <td>{show.cinemaName}</td>
-                  <td>{show.movieTitle}</td>
-                  <td>{slotLabel(show.slot)}</td>
-                  <td>{show.bookedCount}</td>
-                  <td>{show.freeCount}</td>
-                  <td>{showStatus(show.status)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </>
+        <Stack spacing={2}>
+          <Grid container spacing={2}>
+            {[
+              ['ที่นั่งที่ถูกจอง', booked],
+              ['ที่นั่งว่าง', free],
+              ['จำนวนรอบ', page.shows.length]
+            ].map(([label, value]) => (
+              <Grid key={label} size={{ xs: 12, md: 4 }}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">{label}</Typography>
+                    <Typography variant="h4">{value}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+          <Typography variant="h6">แยกตามภาพยนตร์</Typography>
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableHead><TableRow><TableCell>เรื่อง</TableCell><TableCell>ที่นั่งที่ถูกจอง</TableCell></TableRow></TableHead>
+              <TableBody>
+                {page.movies.map(movie => (
+                  <TableRow key={movie.title} hover>
+                    <TableCell>{movie.title}</TableCell>
+                    <TableCell>{movie.bookedSeats}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+          <Typography variant="h6">แยกตามรอบฉาย</Typography>
+          <TableContainer component={Paper}>
+            <Table size="small">
+              <TableHead>
+                <TableRow>
+                  <TableCell>วันที่</TableCell>
+                  <TableCell>โรง</TableCell>
+                  <TableCell>เรื่อง</TableCell>
+                  <TableCell>รอบ</TableCell>
+                  <TableCell>จอง</TableCell>
+                  <TableCell>ว่าง</TableCell>
+                  <TableCell>สถานะ</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {page.shows.map(show => (
+                  <TableRow key={show.showtimeId} hover>
+                    <TableCell>{thaiDay(show.showDate)}</TableCell>
+                    <TableCell>{show.cinemaName}</TableCell>
+                    <TableCell>{show.movieTitle}</TableCell>
+                    <TableCell>{slotLabel(show.slot)}</TableCell>
+                    <TableCell>{show.bookedCount}</TableCell>
+                    <TableCell>{show.freeCount}</TableCell>
+                    <TableCell>{showStatus(show.status)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Stack>
       )}
     </AdminShell>
   )

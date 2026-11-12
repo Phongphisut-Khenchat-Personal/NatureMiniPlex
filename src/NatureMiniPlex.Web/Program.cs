@@ -64,8 +64,10 @@ builder.Services.AddCors(options =>
 });
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+builder.Services.AddSingleton<PosterFiles>();
 builder.Services.AddScoped<MovieService>();
 builder.Services.AddScoped<ScheduleService>();
+builder.Services.AddScoped<CinemaService>();
 builder.Services.AddScoped<BookingService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<AuthService>();

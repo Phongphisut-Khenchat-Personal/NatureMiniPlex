@@ -1,11 +1,3 @@
-const tones = [
-  ['#312e81', '#f97316'],
-  ['#7c2d12', '#fbbf24'],
-  ['#1e3a5f', '#fb7185'],
-  ['#0f766e', '#fdba74'],
-  ['#4c1d95', '#38bdf8']
-]
-
 const slotNames = {
   Morning: 'เช้า',
   Afternoon: 'กลางวัน',
@@ -17,11 +9,6 @@ const showNames = {
   Open: 'เปิดจอง',
   Cancelled: 'ยกเลิกรอบ',
   Started: 'เริ่มฉายแล้ว'
-}
-
-export function posterStyle(id) {
-  const [from, to] = tones[(id || 0) % tones.length]
-  return { background: `linear-gradient(165deg, ${from} 0%, ${to} 100%)` }
 }
 
 export function slotLabel(slot) {

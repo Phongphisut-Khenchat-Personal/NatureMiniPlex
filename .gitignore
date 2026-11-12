@@ -293,6 +293,10 @@ FakesAssemblies/
 .ntvs_analysis.dat
 node_modules/
 
+# Uploaded movie posters stay on this machine
+src/NatureMiniPlex.Web/wwwroot/posters/*
+!src/NatureMiniPlex.Web/wwwroot/posters/.gitkeep
+
 # Visual Studio 6 build log
 *.plg
 

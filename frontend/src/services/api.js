@@ -38,3 +38,22 @@ export async function api(path, options = {}) {
   }
   return data
 }
+
+export async function postFile(path, file) {
+  const headers = {}
+  const token = getToken()
+  if (token) {
+    headers.Authorization = `Bearer ${token}`
+  }
+  const body = new FormData()
+  body.append('file', file)
+  const response = await fetch(path, { method: 'POST', body, headers })
+  const text = await response.text()
+  const data = text ? JSON.parse(text) : null
+  if (!response.ok) {
+    const error = new Error(data?.message || 'อัปโหลดไม่สำเร็จ')
+    error.status = response.status
+    throw error
+  }
+  return data
+}

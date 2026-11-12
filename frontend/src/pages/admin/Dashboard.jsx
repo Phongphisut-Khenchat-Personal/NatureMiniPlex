@@ -1,4 +1,20 @@
 import { useEffect, useState } from 'react'
+import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
+import Card from '@mui/material/Card'
+import CardContent from '@mui/material/CardContent'
+import CardHeader from '@mui/material/CardHeader'
+import Grid from '@mui/material/Grid'
+import LinearProgress from '@mui/material/LinearProgress'
+import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import Typography from '@mui/material/Typography'
 import { Link } from 'react-router-dom'
 import { AdminShell } from '../../components/AdminShell.jsx'
 import { api } from '../../services/api.js'
@@ -14,95 +30,128 @@ export function Dashboard() {
 
   const max = data ? Math.max(1, ...data.days.map(day => day.bookedSeats)) : 1
   const total = data ? data.cinemas.reduce((sum, cinema) => sum + cinema.bookedSeats, 0) : 0
-  let cursor = 0
-  const colors = ['#f97316', '#fdba74']
-  const donut = !data || total === 0
-    ? 'conic-gradient(#2a2a2e 0 100%)'
-    : `conic-gradient(${data.cinemas.map((cinema, index) => {
-      const start = cursor
-      cursor += (cinema.bookedSeats / total) * 100
-      return `${colors[index % colors.length]} ${start}% ${cursor}%`
-    }).join(',')})`
+  const stats = data ? [
+    ['ที่นั่งที่ถูกจองวันนี้', data.bookedSeatsToday],
+    ['เบอร์ที่จองวันนี้', data.phonesToday],
+    ['โรงภาพยนตร์', data.cinemaCount],
+    ['รอบฉายวันนี้', data.showsToday]
+  ] : []
 
   return (
     <AdminShell>
-      {error && <p className="error">{error}</p>}
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {data && (
-        <>
-          <section className="welcome">
-            <div>
-              <h1>ยินดีต้อนรับ, ผู้ดูแลระบบ</h1>
-              <p>ภาพรวมระบบ Nature MiniPlex วันนี้</p>
-            </div>
-            <div className="clock">{clockNow()}</div>
-          </section>
-          <section className="stats">
-            <article><span>ที่นั่งที่ถูกจองวันนี้</span><strong>{data.bookedSeatsToday}</strong></article>
-            <article><span>เบอร์ที่จองวันนี้</span><strong>{data.phonesToday}</strong></article>
-            <article><span>โรงภาพยนตร์</span><strong>{data.cinemaCount}</strong></article>
-            <article><span>รอบฉายวันนี้</span><strong>{data.showsToday}</strong></article>
-          </section>
-          <section className="dash-grid">
-            <article className="panel">
-              <h2>ที่นั่งที่ถูกจอง 7 วัน</h2>
-              <div className="bars">
-                {data.days.map(day => (
-                  <div key={day.date}>
-                    <div className="bar" style={{ height: `${(day.bookedSeats / max) * 120}px` }} />
-                    <span>{thaiDay(day.date).split(' ')[0]}</span>
-                    <em>{day.bookedSeats}</em>
-                  </div>
-                ))}
-              </div>
-            </article>
-            <article className="panel">
-              <h2>การจองแยกตามสาขา</h2>
-              <div className="donut" style={{ background: donut }}><span>{total}</span></div>
-              {data.cinemas.map(cinema => (
-                <p key={cinema.cinemaName}>{cinema.cinemaName} · {cinema.bookedSeats} ที่นั่งวันนี้</p>
-              ))}
-            </article>
-            <article className="panel actions">
-              <h2>เมนูด่วน</h2>
-              <Link to="/admin/movies">เพิ่มภาพยนตร์</Link>
-              <Link to="/admin/showtimes">จัดการรอบฉาย</Link>
-              <Link to="/admin/bookings">ดูรายการจอง</Link>
-              <Link to="/admin/reports">ดูรายงาน</Link>
-            </article>
-          </section>
-          <section className="panel">
-            <div className="section-head dark">
-              <h2>รายการจองล่าสุด</h2>
-              <Link to="/admin/bookings">ดูทั้งหมด →</Link>
-            </div>
-            <table>
-              <thead>
-                <tr><th>รหัสการจอง</th><th>ภาพยนตร์</th><th>โรงภาพยนตร์</th><th>รอบฉาย</th><th>ที่นั่ง</th><th>สถานะ</th></tr>
-              </thead>
-              <tbody>
-                {data.recent.map(row => (
-                  <tr key={`${row.bookingCode}-${row.seatCode}-${row.showDate}-${row.time}`}>
-                    <td>{row.bookingCode}</td>
-                    <td>{row.movieTitle}</td>
-                    <td>{row.cinemaName}</td>
-                    <td>{thaiDay(row.showDate)} {slotLabel(row.slot)} {row.time}</td>
-                    <td>{row.seatCode}</td>
-                    <td>{row.status}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-          <section className="branch-row">
-            {data.cinemas.map(cinema => (
-              <article key={cinema.cinemaName} className="panel">
-                <h2>{cinema.cinemaName}</h2>
-                <p>รอบวันนี้ {cinema.showsToday} รอบ</p>
-                <p>ที่นั่งทั้งหมด {cinema.seatCount} ที่นั่ง · จองวันนี้ {cinema.bookedSeats}</p>
-              </article>
+        <Stack spacing={2}>
+          <Card>
+            <CardContent>
+              <Typography variant="h4">ยินดีต้อนรับ, ผู้ดูแลระบบ</Typography>
+              <Typography color="text.secondary">ภาพรวมระบบ Nature MiniPlex วันนี้ · {clockNow()}</Typography>
+            </CardContent>
+          </Card>
+          <Grid container spacing={2}>
+            {stats.map(([label, value]) => (
+              <Grid key={label} size={{ xs: 12, sm: 6, md: 3 }}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="body2" color="text.secondary">{label}</Typography>
+                    <Typography variant="h4">{value}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
             ))}
-          </section>
-        </>
+          </Grid>
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, md: 6 }}>
+              <Card>
+                <CardHeader title="ที่นั่งที่ถูกจอง 7 วัน" />
+                <CardContent>
+                  <Stack spacing={1.5}>
+                    {data.days.map(day => (
+                      <Stack key={day.date} direction="row" spacing={2} sx={{ alignItems: 'center' }}>
+                        <Typography variant="body2" sx={{ width: 110 }}>{thaiDay(day.date)}</Typography>
+                        <LinearProgress variant="determinate" value={(day.bookedSeats / max) * 100} sx={{ flex: 1 }} />
+                        <Typography variant="body2" sx={{ width: 24 }}>{day.bookedSeats}</Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Card sx={{ height: '100%' }}>
+                <CardHeader title="การจองแยกตามสาขา" subheader={`รวม ${total} ที่นั่งวันนี้`} />
+                <CardContent>
+                  <Stack spacing={2}>
+                    {data.cinemas.map(cinema => (
+                      <div key={cinema.cinemaName}>
+                        <Typography variant="body2">{cinema.cinemaName} · {cinema.bookedSeats}</Typography>
+                        <LinearProgress variant="determinate" value={total === 0 ? 0 : (cinema.bookedSeats / total) * 100} />
+                      </div>
+                    ))}
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Card sx={{ height: '100%' }}>
+                <CardHeader title="เมนูด่วน" />
+                <CardContent>
+                  <Stack spacing={1}>
+                    <Button component={Link} to="/admin/movies" variant="outlined">เพิ่มภาพยนตร์</Button>
+                    <Button component={Link} to="/admin/showtimes" variant="outlined">จัดการรอบฉาย</Button>
+                    <Button component={Link} to="/admin/bookings" variant="outlined">ดูรายการจอง</Button>
+                    <Button component={Link} to="/admin/reports" variant="outlined">ดูรายงาน</Button>
+                  </Stack>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+          <Card>
+            <CardHeader
+              title="รายการจองล่าสุด"
+              action={<Button component={Link} to="/admin/bookings">ดูทั้งหมด</Button>}
+            />
+            <TableContainer component={Paper} variant="outlined" sx={{ mx: 2, mb: 2, width: 'auto' }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>รหัสการจอง</TableCell>
+                    <TableCell>ภาพยนตร์</TableCell>
+                    <TableCell>โรงภาพยนตร์</TableCell>
+                    <TableCell>รอบฉาย</TableCell>
+                    <TableCell>ที่นั่ง</TableCell>
+                    <TableCell>สถานะ</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {data.recent.map(row => (
+                    <TableRow key={`${row.bookingCode}-${row.seatCode}-${row.showDate}-${row.time}`} hover>
+                      <TableCell>{row.bookingCode}</TableCell>
+                      <TableCell>{row.movieTitle}</TableCell>
+                      <TableCell>{row.cinemaName}</TableCell>
+                      <TableCell>{thaiDay(row.showDate)} {slotLabel(row.slot)} {row.time}</TableCell>
+                      <TableCell>{row.seatCode}</TableCell>
+                      <TableCell>{row.status}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+          <Grid container spacing={2}>
+            {data.cinemas.map(cinema => (
+              <Grid key={cinema.cinemaName} size={{ xs: 12, md: 6 }}>
+                <Card>
+                  <CardContent>
+                    <Typography variant="h6">{cinema.cinemaName}</Typography>
+                    <Typography color="text.secondary">รอบวันนี้ {cinema.showsToday} รอบ</Typography>
+                    <Typography color="text.secondary">ที่นั่งทั้งหมด {cinema.seatCount} ที่นั่ง · จองวันนี้ {cinema.bookedSeats}</Typography>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Stack>
       )}
     </AdminShell>
   )

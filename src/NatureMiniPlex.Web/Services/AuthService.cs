@@ -26,7 +26,7 @@ public class AuthService
         }
 
         var user = await _db.Users.FirstOrDefaultAsync(item => item.Username == username.Trim());
-        if (user == null || user.Role != "Staff" || !PasswordBox.Matches(password, user.PasswordHash))
+        if (user == null || user.Role != "Staff" || !PasswordHasher.Matches(password, user.PasswordHash))
         {
             return null;
         }

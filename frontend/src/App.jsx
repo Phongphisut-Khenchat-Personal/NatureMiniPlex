@@ -5,6 +5,7 @@ import { Dashboard } from './pages/admin/Dashboard.jsx'
 import { Login } from './pages/admin/Login.jsx'
 import { MoviesAdmin } from './pages/admin/Movies.jsx'
 import { Reports } from './pages/admin/Reports.jsx'
+import { SeatsAdmin } from './pages/admin/Seats.jsx'
 import { ShowtimesAdmin } from './pages/admin/Showtimes.jsx'
 import { Checkout } from './pages/customer/Checkout.jsx'
 import { Cinema } from './pages/customer/Cinema.jsx'
@@ -28,7 +29,7 @@ export default function App() {
       <Route path="/admin" element={<Dashboard />} />
       <Route path="/admin/movies" element={<MoviesAdmin />} />
       <Route path="/admin/cinemas" element={<CinemasAdmin />} />
-      <Route path="/admin/seats" element={<CinemasAdmin />} />
+      <Route path="/admin/seats" element={<SeatsAdmin />} />
       <Route path="/admin/showtimes" element={<ShowtimesAdmin />} />
       <Route path="/admin/bookings" element={<BookingsAdmin />} />
       <Route path="/admin/reports" element={<Reports />} />

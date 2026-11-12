@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NatureMiniPlex.Web.Data;
+using NatureMiniPlex.Web.DTOs;
 using NatureMiniPlex.Web.Models;
 
 namespace NatureMiniPlex.Web.Services;
@@ -40,6 +41,7 @@ public class ReportService
             .Select(group => new { group.Key, Count = group.Count() })
             .ToDictionaryAsync(item => item.Key, item => item.Count);
         var seatCounts = await _db.Seats.AsNoTracking()
+            .Where(seat => !seat.IsClosed)
             .GroupBy(seat => seat.CinemaId)
             .Select(group => new { group.Key, Count = group.Count() })
             .ToDictionaryAsync(item => item.Key, item => item.Count);

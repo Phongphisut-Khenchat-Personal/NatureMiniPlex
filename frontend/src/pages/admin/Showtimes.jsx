@@ -1,4 +1,17 @@
 import { useEffect, useState } from 'react'
+import Alert from '@mui/material/Alert'
+import Button from '@mui/material/Button'
+import MenuItem from '@mui/material/MenuItem'
+import Paper from '@mui/material/Paper'
+import Stack from '@mui/material/Stack'
+import Table from '@mui/material/Table'
+import TableBody from '@mui/material/TableBody'
+import TableCell from '@mui/material/TableCell'
+import TableContainer from '@mui/material/TableContainer'
+import TableHead from '@mui/material/TableHead'
+import TableRow from '@mui/material/TableRow'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
 import { AdminShell } from '../../components/AdminShell.jsx'
 import { api } from '../../services/api.js'
 import { addDays, showStatus, slotLabel, thaiDay, todayIso } from '../../services/format.js'
@@ -77,50 +90,60 @@ export function ShowtimesAdmin() {
 
   return (
     <AdminShell>
-      <h1>จัดการรอบฉาย</h1>
-      <p>แต่ละโรงมีได้ไม่เกิน 3 รอบต่อวัน เวลาไม่ซ้อนกันเพราะแต่ละช่วงมีเวลาตายตัว และรอบต้องอยู่ในช่วงวันที่ของเรื่อง</p>
-      <form onSubmit={createShow} className="form-row">
-        <label>โรงภาพยนตร์
-          <select name="cinemaId" value={form.cinemaId} onChange={change}>
-            {cinemas.map(cinema => <option key={cinema.cinemaId} value={cinema.cinemaId}>{cinema.cinemaName}</option>)}
-          </select>
-        </label>
-        <label>ภาพยนตร์
-          <select name="movieId" value={form.movieId} onChange={change}>
-            {movies.map(movie => <option key={movie.movieId} value={movie.movieId}>{movie.title}</option>)}
-          </select>
-        </label>
-        <label>วันที่<input type="date" name="showDate" value={form.showDate} onChange={change} /></label>
-        <label>รอบ
-          <select name="slot" value={form.slot} onChange={change}>
-            {slots.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-          </select>
-        </label>
-        <button className="btn" type="submit">เพิ่มรอบ</button>
-      </form>
-      {error && <p className="error">{error}</p>}
-      {message && <p className="ok">{message}</p>}
-      <table>
-        <thead>
-          <tr><th>วันที่</th><th>โรง</th><th>เรื่อง</th><th>รอบ</th><th>จองแล้ว</th><th>สถานะ</th><th></th></tr>
-        </thead>
-        <tbody>
-          {shows.map(show => (
-            <tr key={show.showtimeId}>
-              <td>{thaiDay(show.showDate)}</td>
-              <td>{show.cinemaName}</td>
-              <td>{show.movieTitle}</td>
-              <td>{slotLabel(show.slot)} {show.time}</td>
-              <td>{show.bookedCount}/{show.seatCount}</td>
-              <td>{showStatus(show.status)}</td>
-              <td>
-                {show.status === 'Open' && <button type="button" onClick={() => act(`/api/showtimes/${show.showtimeId}/cancel`)}>ยกเลิกรอบ</button>}
-                {show.status === 'Open' && show.showDate <= today && <button type="button" onClick={() => act(`/api/showtimes/${show.showtimeId}/start`)}>เริ่มฉาย</button>}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Typography variant="h4" gutterBottom>จัดการรอบฉาย</Typography>
+      <Typography color="text.secondary" sx={{ mb: 2 }}>
+        แต่ละโรงมีได้ไม่เกิน 3 รอบต่อวัน เวลาไม่ซ้อนกันเพราะแต่ละช่วงมีเวลาตายตัว และรอบต้องอยู่ในช่วงวันที่ของเรื่อง
+      </Typography>
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <form onSubmit={createShow}>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
+            <TextField select label="โรงภาพยนตร์" name="cinemaId" value={form.cinemaId} onChange={change} sx={{ minWidth: 180 }}>
+              {cinemas.map(cinema => <MenuItem key={cinema.cinemaId} value={cinema.cinemaId}>{cinema.cinemaName}</MenuItem>)}
+            </TextField>
+            <TextField select label="ภาพยนตร์" name="movieId" value={form.movieId} onChange={change} sx={{ minWidth: 200 }}>
+              {movies.map(movie => <MenuItem key={movie.movieId} value={movie.movieId}>{movie.title}</MenuItem>)}
+            </TextField>
+            <TextField label="วันที่" type="date" name="showDate" value={form.showDate} onChange={change} slotProps={{ inputLabel: { shrink: true } }} />
+            <TextField select label="รอบ" name="slot" value={form.slot} onChange={change} sx={{ minWidth: 160 }}>
+              {slots.map(([value, label]) => <MenuItem key={value} value={value}>{label}</MenuItem>)}
+            </TextField>
+            <Button type="submit" variant="contained">เพิ่มรอบ</Button>
+          </Stack>
+        </form>
+      </Paper>
+      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {message && <Alert severity="success" sx={{ mb: 2 }}>{message}</Alert>}
+      <TableContainer component={Paper}>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>วันที่</TableCell>
+              <TableCell>โรง</TableCell>
+              <TableCell>เรื่อง</TableCell>
+              <TableCell>รอบ</TableCell>
+              <TableCell>จองแล้ว</TableCell>
+              <TableCell>สถานะ</TableCell>
+              <TableCell />
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {shows.map(show => (
+              <TableRow key={show.showtimeId} hover>
+                <TableCell>{thaiDay(show.showDate)}</TableCell>
+                <TableCell>{show.cinemaName}</TableCell>
+                <TableCell>{show.movieTitle}</TableCell>
+                <TableCell>{slotLabel(show.slot)} {show.time}</TableCell>
+                <TableCell>{show.bookedCount}/{show.seatCount}</TableCell>
+                <TableCell>{showStatus(show.status)}</TableCell>
+                <TableCell align="right">
+                  {show.status === 'Open' && <Button size="small" color="error" onClick={() => act(`/api/showtimes/${show.showtimeId}/cancel`)}>ยกเลิกรอบ</Button>}
+                  {show.status === 'Open' && show.showDate <= today && <Button size="small" onClick={() => act(`/api/showtimes/${show.showtimeId}/start`)}>เริ่มฉาย</Button>}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </AdminShell>
   )
 }

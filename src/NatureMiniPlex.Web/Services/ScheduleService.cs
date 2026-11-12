@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using NatureMiniPlex.Web.Data;
+using NatureMiniPlex.Web.DTOs;
 using NatureMiniPlex.Web.Models;
 
 namespace NatureMiniPlex.Web.Services;
@@ -9,45 +10,6 @@ public class ScheduleService
     private readonly AppDbContext _db;
 
     public ScheduleService(AppDbContext db) => _db = db;
-
-    public Task<List<Cinema>> CinemasAsync() =>
-        _db.Cinemas.OrderBy(cinema => cinema.CinemaId).ToListAsync();
-
-    public Task<List<Showtime>> ListAsync(DateOnly from, DateOnly to) =>
-        _db.Showtimes
-            .Include(show => show.Cinema)
-            .Include(show => show.Movie)
-            .Where(show => show.Status != ShowtimeStatus.Cancelled && show.ShowDate >= from && show.ShowDate <= to)
-            .OrderBy(show => show.ShowDate)
-            .ThenBy(show => show.CinemaId)
-            .ThenBy(show => show.Slot)
-            .ToListAsync();
-
-    public async Task<ScheduleDayView?> GetDayAsync(int cinemaId, DateOnly showDate)
-    {
-        var cinema = await _db.Cinemas.FirstOrDefaultAsync(item => item.CinemaId == cinemaId);
-        if (cinema == null)
-        {
-            return null;
-        }
-
-        var rows = await _db.Showtimes
-            .Include(show => show.BookingSeats)
-            .Where(show => show.CinemaId == cinemaId && show.ShowDate == showDate && show.Status != ShowtimeStatus.Cancelled)
-            .ToListAsync();
-
-        var locked = rows.Any(IsLocked);
-        return new ScheduleDayView
-        {
-            CinemaId = cinemaId,
-            CinemaName = cinema.CinemaName,
-            ShowDate = showDate,
-            MovieId = rows.Select(show => (int?)show.MovieId).FirstOrDefault(),
-            Slots = rows.Select(show => show.Slot).Distinct().ToList(),
-            Locked = locked,
-            LockReason = locked ? "วันนี้มีรอบที่ถูกจองหรือเริ่มฉายแล้ว จึงแก้ตารางไม่ได้" : ""
-        };
-    }
 
     public async Task<RuleResult> SaveDayAsync(int cinemaId, DateOnly showDate, int movieId, IReadOnlyCollection<ShowSlot> slots)
     {
@@ -199,7 +161,8 @@ public class ScheduleService
                 SeatId = seat.SeatId,
                 SeatRow = seat.SeatRow,
                 SeatColumn = seat.SeatColumn,
-                SeatCode = seat.SeatCode
+                SeatCode = seat.SeatCode,
+                Closed = seat.IsClosed
             }).ToList()
         };
     }
@@ -242,6 +205,7 @@ public class ScheduleService
             .Select(group => new { group.Key, Count = group.Count() })
             .ToDictionaryAsync(item => item.Key, item => item.Count);
         var seatCounts = await _db.Seats.AsNoTracking()
+            .Where(seat => !seat.IsClosed)
             .GroupBy(seat => seat.CinemaId)
             .Select(group => new { group.Key, Count = group.Count() })
             .ToDictionaryAsync(item => item.Key, item => item.Count);

@@ -121,6 +121,15 @@ namespace NatureMiniPlex.Web.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MovieId"));
 
+                    b.Property<bool>("IsRecommended")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("PosterFileName")
+                        .HasMaxLength(80)
+                        .HasColumnType("nvarchar(80)");
+
                     b.Property<DateOnly>("StartDate")
                         .HasColumnType("date");
 
@@ -150,6 +159,11 @@ namespace NatureMiniPlex.Web.Data.Migrations
 
                     b.Property<int>("CinemaId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsClosed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("SeatCode")
                         .IsRequired()

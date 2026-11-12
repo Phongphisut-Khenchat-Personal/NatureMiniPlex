@@ -12,8 +12,13 @@ namespace NatureMiniPlex.Web.Controllers;
 public class MovieApiController : ControllerBase
 {
     private readonly MovieService _movies;
+    private readonly PosterFiles _posters;
 
-    public MovieApiController(MovieService movies) => _movies = movies;
+    public MovieApiController(MovieService movies, PosterFiles posters)
+    {
+        _movies = movies;
+        _posters = posters;
+    }
 
     [HttpGet]
     [Authorize(Roles = "Staff")]
@@ -36,13 +41,48 @@ public class MovieApiController : ControllerBase
 
     [HttpPost]
     [Authorize(Roles = "Staff")]
-    public async Task<IActionResult> Create(MovieRequest request) =>
-        ApiResults.From(await _movies.CreateAsync(request.Title, request.StartDate, request.StopDate));
+    public async Task<IActionResult> Create(MovieRequest request)
+    {
+        var result = await _movies.CreateAsync(request.Title, request.StartDate, request.StopDate, request.Recommended);
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.Message });
+        }
+
+        return Ok(new { message = result.Message, movieId = result.Id });
+    }
+
+    [HttpPost("{id:int}/poster")]
+    [Authorize(Roles = "Staff")]
+    [RequestSizeLimit(PosterFiles.MaxBytes + (64 * 1024))]
+    public async Task<IActionResult> Poster(int id, IFormFile? file)
+    {
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest(new { message = "กรุณาเลือกไฟล์รูป" });
+        }
+
+        var saved = await _posters.SaveAsync(file);
+        if (saved.Error != null)
+        {
+            return BadRequest(new { message = saved.Error });
+        }
+
+        var (result, previous) = await _movies.SetPosterAsync(id, saved.FileName!);
+        if (!result.Success)
+        {
+            _posters.Delete(saved.FileName);
+            return BadRequest(new { message = result.Message });
+        }
+
+        _posters.Delete(previous);
+        return Ok(new { message = result.Message, posterUrl = "/posters/" + saved.FileName });
+    }
 
     [HttpPut("{id:int}")]
     [Authorize(Roles = "Staff")]
     public async Task<IActionResult> Update(int id, MovieRequest request) =>
-        ApiResults.From(await _movies.UpdateAsync(id, request.Title, request.StartDate, request.StopDate));
+        ApiResults.From(await _movies.UpdateAsync(id, request.Title, request.StartDate, request.StopDate, request.Recommended));
 
     [HttpPost("{id:int}/cancel")]
     [Authorize(Roles = "Staff")]
@@ -55,6 +95,8 @@ public class MovieApiController : ControllerBase
         movie.Title,
         movie.StartDate,
         movie.StopDate,
-        Status = movie.Status.ToString()
+        movie.IsRecommended,
+        Status = movie.Status.ToString(),
+        posterUrl = movie.PosterFileName == null ? null : "/posters/" + movie.PosterFileName
     };
 }
