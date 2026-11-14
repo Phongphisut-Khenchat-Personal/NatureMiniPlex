@@ -1,78 +1,112 @@
-# Nature MiniPlex
+<p align="center">
+  <img alt="หน้าแรก Nature MiniPlex" src="docs/screenshots/home.png" width="880">
+</p>
 
-เว็บจองตั๋วหนังสองฝั่ง ลูกค้าเลือกเรื่อง โรง รอบ และที่นั่งด้วยเบอร์โทร พนักงานเข้าสู่ระบบเพื่อจัดรอบและดูรายงาน
+<h1 align="center">Nature MiniPlex</h1>
 
-React · Material UI · ASP.NET Core · Entity Framework Core · SQL Server Express
+<p align="center">
+  ระบบจองตั๋วหนังสองโรง · ลูกค้าจองด้วยเบอร์โทร · พนักงานจัดรอบและดูรายงาน
+</p>
+
+<p align="center">
+  <img alt=".NET 10" src="https://img.shields.io/badge/.NET-10-512BD4?style=flat-square&logo=dotnet&logoColor=white">
+  <img alt="React 19" src="https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react&logoColor=white">
+  <img alt="Material UI" src="https://img.shields.io/badge/Material%20UI-111111?style=flat-square&logo=mui&logoColor=ff6d00">
+  <img alt="SQL Server Express" src="https://img.shields.io/badge/SQL%20Server-Express-CC2927?style=flat-square&logo=microsoftsqlserver&logoColor=white">
+</p>
 
 ## สรุปตามโจทย์
 
-- [x] ศรีราชา 6 ที่นั่ง เรียง A–C สองแถว (หน้า, หลัง) และบางแสน 12 ที่นั่ง เรียง A–D สามแถว (หน้า, กลาง, หลัง)
-- [x] เพิ่ม แก้ไข และยกเลิกเรื่องได้ พร้อมวันเริ่มกับวันสิ้นสุด รอบฉายต้องอยู่ในช่วงนั้น
-- [x] เพิ่ม แก้ไข และยกเลิกรอบได้ ไม่เกิน 3 รอบต่อโรงต่อวัน และแต่ละวันกำหนดต่างกันได้
-- [x] จองด้วยเบอร์โทรหนึ่งเบอร์ ได้ 1–4 ที่นั่ง ข้ามรอบและข้ามเรื่องได้ ที่นั่งหนึ่งของรอบหนึ่งจองได้ครั้งเดียว
-- [x] ยกเลิกได้เฉพาะที่นั่งของเบอร์นั้น
-- [x] พนักงานยืนยันเริ่มฉายแล้ว จองและยกเลิกไม่ได้
-- [x] รายงานเป็นข้อมูล ณ เวลาที่เปิดดู
-- [x] เขียนด้วย .NET กับ SQL Server Express และอธิบายงานออกแบบไว้ใน [docs/DESIGN.md](docs/DESIGN.md)
-
-เพิ่มจากโจทย์
-
-- [x] หน้าเว็บลูกค้าแยกจากหลังบ้านพนักงาน
-- [x] อัปโหลดโปสเตอร์ และติ๊กเรื่องแนะนำ
-- [x] เพิ่มโรงตามสองผังได้ และปิดที่นั่งซ่อมได้
-- [x] มีรหัสการจอง และเข้าสู่ระบบพนักงาน
-- [x] มีเทสล็อกกติกาเหล่านี้
-
-ตีความไว้สองจุด โจทย์เขียนว่าแต่ละโรงมีอย่างน้อย 1 รอบต่อวัน ระบบกันไว้แค่ไม่ให้เกิน 3 รอบในวันที่พนักงานเพิ่มรอบ ไม่ได้สร้างรอบให้ทุกวันข้างหน้า วันที่ในตัวอย่างเป็นปี 2553 จึงใช้เป็นตัวอย่างชื่อเรื่องกับช่วงเวลา ไม่ได้ยึดจำนวนรอบรายวันตามตัวอย่างนั้น ข้อมูลในระบบนับจากวันที่เปิดโปรแกรมครั้งแรก และใส่รอบให้ห้าวันแรก วันละ 3 รอบ
-
-เวลาที่ใช้คือ 10:00, 13:00, 16:00 และ 20:00 ลูกค้าไม่ต้องสมัครสมาชิก
-
-![หน้าแรก](docs/screenshots/home.png)
+<table>
+  <tr>
+    <th align="left" width="56%">ตามที่กำหนด</th>
+    <th align="left" width="44%">เพิ่มเอง</th>
+  </tr>
+  <tr>
+    <td valign="top">
+      <ul>
+        <li>✅ ศรีราชา 6 ที่นั่ง เรียง A–C สองแถว และบางแสน 12 ที่นั่ง เรียง A–D สามแถว</li>
+        <li>✅ เพิ่ม แก้ไข ยกเลิกเรื่องได้ พร้อมวันเริ่มและวันสิ้นสุด</li>
+        <li>✅ รอบฉายต้องอยู่ในช่วงของเรื่อง และจัดต่างกันได้ในแต่ละวัน</li>
+        <li>✅ ไม่เกิน 3 รอบต่อโรงต่อวัน เวลา 10:00, 13:00, 16:00, 20:00</li>
+        <li>✅ จองด้วยหนึ่งเบอร์ ได้ 1–4 ที่นั่ง ข้ามรอบและข้ามเรื่องได้</li>
+        <li>✅ ที่นั่งหนึ่งของรอบหนึ่งจองได้ครั้งเดียว</li>
+        <li>✅ ยกเลิกได้เฉพาะที่นั่งของเบอร์นั้น</li>
+        <li>✅ ยืนยันเริ่มฉายแล้ว จองและยกเลิกไม่ได้</li>
+        <li>✅ รายงานเป็นข้อมูล ณ เวลาที่เปิดดู</li>
+        <li>✅ .NET + SQL Server Express และมีเอกสารออกแบบ</li>
+      </ul>
+    </td>
+    <td valign="top">
+      <ul>
+        <li>✅ หน้าลูกค้าแยกจากหลังบ้านพนักงาน</li>
+        <li>✅ อัปโหลดโปสเตอร์ และติ๊กเรื่องแนะนำ</li>
+        <li>✅ เพิ่มโรงตามสองผัง และปิดที่นั่งซ่อม</li>
+        <li>✅ รหัสการจอง และเข้าสู่ระบบพนักงาน</li>
+        <li>✅ เทสล็อกกติกาไว้</li>
+      </ul>
+      <br>
+      <b>ตีความไว้สองจุด</b>
+      <br><br>
+      แต่ละโรงมีอย่างน้อย 1 รอบต่อวัน — ระบบกันแค่ไม่ให้เกิน 3 รอบในวันที่เพิ่มรอบ ไม่ได้สร้างรอบให้ทุกวันข้างหน้า
+      <br><br>
+      วันที่ในตัวอย่างเป็นปี 2553 — ใช้เป็นชื่อเรื่องกับช่วงเวลา ข้อมูลจริงนับจากวันที่เปิดโปรแกรม และมีรอบห้าวันแรก วันละ 3 รอบ
+    </td>
+  </tr>
+</table>
 
 <table>
   <tr>
     <td width="50%"><img src="docs/screenshots/seats.png" alt="ลูกค้าเลือกที่นั่ง"></td>
     <td width="50%"><img src="docs/screenshots/dashboard.png" alt="แดชบอร์ดพนักงาน"></td>
   </tr>
+  <tr>
+    <td align="center"><b>ลูกค้าเลือกที่นั่ง</b><br>ขอบส้มว่าง · ส้มทึบคือที่เลือก · เทาคือจองแล้ว</td>
+    <td align="center"><b>พนักงานดูวันนี้</b><br>จำนวนที่นั่ง รอบฉาย และรายการจองล่าสุด</td>
+  </tr>
 </table>
 
 ## รันในเครื่อง
 
-ใช้ .NET SDK 10, Node.js 20 ขึ้นไป และ Docker Desktop เปิด Docker ให้พร้อมก่อน แล้วรันจากโฟลเดอร์ที่มี `docker-compose.yml`
+ใช้ .NET SDK 10, Node.js 20 ขึ้นไป และ Docker Desktop เปิด Docker ก่อน แล้วรันจากโฟลเดอร์ที่มี `docker-compose.yml`
 
-```bash
-docker compose up -d
-dotnet run --project src/NatureMiniPlex.Web --launch-profile http
-```
+<table>
+  <tr>
+    <td width="33%" valign="top" align="center"><b>1 · ฐานข้อมูล</b></td>
+    <td width="33%" valign="top" align="center"><b>2 · API</b></td>
+    <td width="34%" valign="top" align="center"><b>3 · หน้าเว็บ</b></td>
+  </tr>
+  <tr>
+    <td valign="top"><code>docker compose up -d</code></td>
+    <td valign="top"><code>dotnet run --project src/NatureMiniPlex.Web --launch-profile http</code></td>
+    <td valign="top">
+      <code>cd frontend</code><br>
+      <code>npm install</code><br>
+      <code>npm run dev</code>
+    </td>
+  </tr>
+</table>
 
-เปิดอีกเทอร์มินัลสำหรับหน้าเว็บ
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-| | |
+| เปิด | ที่ |
 |---|---|
 | เว็บ | http://localhost:5173 |
-| Swagger | http://localhost:5274/swagger |
 | พนักงาน | `admin` / `Admin@1234` |
 | เบอร์ตัวอย่าง | `0891111111` |
+| Swagger | http://localhost:5274/swagger |
 
-ครั้งแรกที่เปิด API โปรแกรมสร้างฐานข้อมูลให้เอง พร้อมโรงศรีราชา โรงบางแสน และรอบตัวอย่างห้าวันแรก โปสเตอร์ไม่อยู่ใน Git อัปโหลดได้จากเมนูจัดการภาพยนตร์ รหัสใน repo นี้ใช้เปิดเครื่องพัฒนาเท่านั้น
+ครั้งแรกที่เปิด API โปรแกรมสร้างโรงศรีราชา โรงบางแสน และรอบห้าวันแรกให้เอง โปสเตอร์อัปโหลดจากเมนูจัดการภาพยนตร์ รหัสใน repo ใช้เปิดเครื่องพัฒนาเท่านั้น
 
-ถ้าหน้าเว็บไม่ขึ้น ให้เช็กว่า API ฟังอยู่ที่พอร์ต `5274` และ Vite อยู่ที่ `5173` ถ้าพอร์ต `1433` ถูกใช้แล้ว เปลี่ยนพอร์ตใน `docker-compose.yml` กับสายเชื่อมใน `appsettings.json` ให้ตรงกัน
+หน้าเว็บไม่ขึ้น ให้เช็กว่า API อยู่ที่พอร์ต `5274` และ Vite อยู่ที่ `5173` พอร์ต `1433` ถูกใช้แล้ว ให้เปลี่ยนทั้งใน `docker-compose.yml` และ `appsettings.json`
 
 ## โครงโค้ด
 
 ```text
-frontend/                    หน้าเว็บ  ลูกค้าอยู่ใน pages/customer  พนักงานอยู่ใน pages/admin
-src/NatureMiniPlex.Web/      API  แยกเป็น Controllers, Services, Models, DTOs, Data
-tests/NatureMiniPlex.Tests/  เทสกติกา ใช้ฐานคนละก้อน
+frontend/                    หน้าเว็บ   pages/customer และ pages/admin
+src/NatureMiniPlex.Web/      API        Controllers → Services → Data
+tests/NatureMiniPlex.Tests/  เทสกติกา   ใช้ฐานคนละก้อน
 ```
 
-กติกาอยู่ที่ Service หน้าเว็บทำหน้าที่ส่งคำขออย่างเดียว รายละเอียดตาราง ลำดับการจอง และจุดที่จะแก้ต่ออยู่ใน [docs/DESIGN.md](docs/DESIGN.md)
+กติกาอยู่ที่ Service ตาราง ลำดับการจอง และจุดที่ซับซ้อนอยู่ใน [docs/DESIGN.md](docs/DESIGN.md)
 
 ```bash
 dotnet test tests/NatureMiniPlex.Tests/NatureMiniPlex.Tests.csproj
