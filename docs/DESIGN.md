@@ -19,13 +19,28 @@
 
 ## สารบัญ
 
-| | | |
-|---|---|---|
-| [สถาปัตยกรรม](#สถาปัตยกรรม) | [กติกา](#กติกา) | [ฐานข้อมูล](#ฐานข้อมูล) |
-| [เครื่องมือ](#เครื่องมือ) | [Use case](#use-case) | [สถานะ](#สถานะ) |
-| [โครงโฟลเดอร์](#โครงโฟลเดอร์) | [แผนภาพรายกรณี](#แผนภาพรายกรณี) | [จุดที่ซับซ้อน](#จุดที่ซับซ้อน) |
+<table>
+  <tr>
+    <td align="center" width="25%"><a href="#สถาปัตยกรรม"><img src="diagrams/icons/layers.svg" width="28" height="28" alt=""><br><b>สถาปัตยกรรม</b></a></td>
+    <td align="center" width="25%"><a href="#เครื่องมือ"><img src="diagrams/icons/tools.svg" width="28" height="28" alt=""><br><b>เครื่องมือ</b></a></td>
+    <td align="center" width="25%"><a href="#โครงโฟลเดอร์"><img src="diagrams/icons/folder.svg" width="28" height="28" alt=""><br><b>โครงโฟลเดอร์</b></a></td>
+    <td align="center" width="25%"><a href="#กติกา"><img src="diagrams/icons/rules.svg" width="28" height="28" alt=""><br><b>กติกา</b></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="#use-case"><img src="diagrams/icons/users.svg" width="28" height="28" alt=""><br><b>Use case</b></a></td>
+    <td align="center"><a href="#ฐานข้อมูล"><img src="diagrams/icons/database.svg" width="28" height="28" alt=""><br><b>ฐานข้อมูล</b></a></td>
+    <td align="center"><a href="#สถานะ"><img src="diagrams/icons/state.svg" width="28" height="28" alt=""><br><b>สถานะ</b></a></td>
+    <td align="center"><a href="#แผนภาพรายกรณี"><img src="diagrams/icons/flow.svg" width="28" height="28" alt=""><br><b>แผนภาพรายกรณี</b></a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="#จุดที่ซับซ้อน"><img src="diagrams/icons/code.svg" width="28" height="28" alt=""><br><b>จุดที่ซับซ้อน</b></a></td>
+    <td align="center"><a href="#รายงาน"><img src="diagrams/icons/report.svg" width="28" height="28" alt=""><br><b>รายงาน</b></a></td>
+    <td align="center"><a href="#เทส"><img src="diagrams/icons/test.svg" width="28" height="28" alt=""><br><b>เทส</b></a></td>
+    <td align="center"><a href="#ข้อมูลตัวอย่าง"><img src="diagrams/icons/film.svg" width="28" height="28" alt=""><br><b>ข้อมูลตัวอย่าง</b></a></td>
+  </tr>
+</table>
 
-รายงาน เทส ข้อมูลตัวอย่าง และขอบเขตของระบบอยู่ท้ายเอกสาร
+<p><img src="diagrams/icons/layers.svg" width="28" height="28" alt=""></p>
 
 ## สถาปัตยกรรม
 
@@ -35,18 +50,22 @@
   <img alt="สถาปัตยกรรม Nature MiniPlex" src="diagrams/png/05-architecture.png" width="880">
 </p>
 
+<p><img src="diagrams/icons/tools.svg" width="28" height="28" alt=""></p>
+
 ## เครื่องมือ
 
 | ส่วน | เครื่องมือ |
 |---|---|
-| หน้าเว็บ | React, JSX และ Material UI ผ่าน Vite |
-| API | ASP.NET Core Web API บน .NET 10 และ Swagger |
+| <img src="https://cdn.simpleicons.org/react/149ECA" width="18" alt=""> หน้าเว็บ | React, JSX และ <img src="https://cdn.simpleicons.org/mui/ff6d00" width="18" alt=""> Material UI ผ่าน <img src="https://cdn.simpleicons.org/vite/646CFF" width="18" alt=""> Vite |
+| <img src="https://cdn.simpleicons.org/dotnet/512BD4" width="18" alt=""> API | ASP.NET Core Web API บน .NET 10 และ <img src="https://cdn.simpleicons.org/swagger/85EA2D" width="18" alt=""> Swagger |
 | ล็อกอินพนักงาน | JWT ลูกค้าไม่ต้องล็อกอิน |
 | กติกา | คลาสใน `Services` |
-| ฐานข้อมูล | Entity Framework Core 10.0.7 แบบ Code First |
-| เซิร์ฟเวอร์ฐานข้อมูล | SQL Server 2022 Express ใน Docker |
+| <img src="https://cdn.simpleicons.org/dotnet/512BD4" width="18" alt=""> ฐานข้อมูล | Entity Framework Core 10.0.7 แบบ Code First |
+| <img src="https://cdn.simpleicons.org/microsoftsqlserver/CC2927" width="18" alt=""> เซิร์ฟเวอร์ฐานข้อมูล | SQL Server 2022 Express ใน <img src="https://cdn.simpleicons.org/docker/2496ED" width="18" alt=""> Docker |
 | ที่นั่งที่ยังไม่กดยืนยัน | state ของ React ในเบราว์เซอร์ |
-| เทส | xUnit เรียก Service ตรงบน SQL Server จริง |
+| <img src="diagrams/icons/test.svg" width="18" alt=""> เทส | xUnit เรียก Service ตรงบน SQL Server จริง |
+
+<p><img src="diagrams/icons/folder.svg" width="28" height="28" alt=""></p>
 
 ## โครงโฟลเดอร์
 
@@ -76,6 +95,8 @@ NatureMiniPlex/
 
 คลาสตารางอยู่ใน `Models/Entities.cs` สถานะและชื่อรอบภาษาไทยอยู่ใน `Models/Enums.cs` หน้าเว็บเรียก API ผ่าน `frontend/src/services/api.js`
 
+<p><img src="diagrams/icons/rules.svg" width="28" height="28" alt=""></p>
+
 ## กติกา
 
 | เรื่อง | กติกา |
@@ -98,6 +119,8 @@ NatureMiniPlex/
 
 รายการที่นั่งระหว่างเลือกอยู่ในเบราว์เซอร์ ยังไม่ใช่การจอง การจองเกิดตอนกดยืนยัน แล้ว `BookingService.BookAsync` ตรวจฐานข้อมูลอีกครั้ง โจทย์เขียนว่าแต่ละโรงมีอย่างน้อย 1 รอบต่อวัน แต่ปฏิทินไม่มีวันสิ้นสุด ระบบจึงกันแค่ไม่ให้เกิน 3 รอบในวันที่พนักงานเพิ่มรอบ
 
+<p><img src="diagrams/icons/users.svg" width="28" height="28" alt=""></p>
+
 ## Use case
 
 <p align="center">
@@ -116,6 +139,8 @@ NatureMiniPlex/
 | เข้าสู่ระบบพนักงาน | ตรวจรหัสแล้วออก JWT | `AuthService.LoginAsync` |
 | ยืนยันเริ่มฉาย | ปิดรอบนั้น | `ScheduleService.ConfirmStartAsync` |
 | ดูรายงาน | สรุปรอบ เรื่อง และรายการจอง | `ReportService.BuildAsync` |
+
+<p><img src="diagrams/icons/database.svg" width="28" height="28" alt=""></p>
 
 ## ฐานข้อมูล
 
@@ -198,6 +223,8 @@ NatureMiniPlex/
 
 **Users** มีเฉพาะพนักงาน คอลัมน์คือ UserId, Username, PasswordHash และ Role ลูกค้าไม่มีแถวในตารางนี้
 
+<p><img src="diagrams/icons/state.svg" width="28" height="28" alt=""></p>
+
 ## สถานะ
 
 รอบฉายไปได้สามทาง คือเปิดจอง ยกเลิก หรือเริ่มฉายแล้ว รอบที่ยกเลิกเอาช่วงเวลานั้นกลับมาใช้ได้ รอบที่เริ่มฉายแล้วปิดถาวร
@@ -219,6 +246,8 @@ stateDiagram-v2
   Booked --> Cancelled: เบอร์ตรงและรอบยังเปิดจอง
   Cancelled --> [*]
 ```
+
+<p><img src="diagrams/icons/flow.svg" width="28" height="28" alt=""></p>
 
 ## แผนภาพรายกรณี
 
@@ -334,6 +363,8 @@ stateDiagram-v2
 </table>
 </details>
 
+<p><img src="diagrams/icons/code.svg" width="28" height="28" alt=""></p>
+
 ## จุดที่ซับซ้อน
 
 ### 1. ที่นั่งเดียวกันในรอบเดียวกันจองซ้ำไม่ได้
@@ -369,6 +400,8 @@ entity.HasIndex(item => new { item.ShowtimeId, item.SeatId })
 
 ดัชนีของ Showtimes ไม่มีเงื่อนไขสถานะ รอบที่ยกเลิกแล้วยังกินชื่อโรง วัน และช่วงเวลานั้นอยู่ ถ้าจะเปิดช่วงเวลาเดิมอีกครั้ง โค้ดจึงหาแถวเดิมแล้วเปลี่ยนสถานะกลับเป็นเปิดจอง `SaveDayAsync` ยังอยู่สำหรับเทสชุดเดิม หน้าเว็บพนักงานใช้ `CreateAsync`
 
+<p><img src="diagrams/icons/report.svg" width="28" height="28" alt=""></p>
+
 ## รายงาน
 
 `ReportService.BuildAsync` คำนวณตอนเปิดหน้า
@@ -378,6 +411,8 @@ entity.HasIndex(item => new { item.ShowtimeId, item.SeatId })
 | แต่ละรอบ | จำนวนที่นั่งที่ยังจอง เทียบกับที่นั่งของโรง และสถานะของรอบ |
 | ตามเรื่อง | ผลรวมที่นั่งที่ยังจองอยู่ในช่วงวันที่ที่เลือก |
 | รายการจอง | ไม่กรอกเบอร์จะเห็นเฉพาะที่ยังจอง กรอกเบอร์แล้วเห็นทั้งที่จองและที่ยกเลิกของเบอร์นั้น |
+
+<p><img src="diagrams/icons/test.svg" width="28" height="28" alt=""></p>
 
 ## เทส
 
@@ -400,6 +435,8 @@ entity.HasIndex(item => new { item.ShowtimeId, item.SeatId })
 | จองที่นั่งที่ปิดซ่อม | ไม่ผ่าน จนกว่าจะเปิดใช้ |
 | ลบโรงที่มีรอบฉาย | ไม่ผ่าน |
 | ลบโรงที่ยังไม่มีรอบ | ลบโรงและที่นั่งได้ |
+
+<p><img src="diagrams/icons/film.svg" width="28" height="28" alt=""></p>
 
 ## ข้อมูลตัวอย่าง
 
