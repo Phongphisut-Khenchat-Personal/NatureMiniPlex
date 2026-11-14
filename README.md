@@ -56,13 +56,7 @@
 </table>
 
 <p align="center">
-  <a href="docs/DESIGN.md">
-    <img alt="เปิด docs/DESIGN.md" src="https://img.shields.io/badge/%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%94%20DESIGN.md-%E0%B8%81%E0%B8%8E%E0%B8%B4%E0%B8%81%E0%B8%B2%20%C2%B7%20%E0%B8%95%E0%B8%B2%E0%B8%A3%E0%B8%B2%E0%B8%87%20%C2%B7%20%E0%B8%A5%E0%B8%B3%E0%B8%94%E0%B8%B1%E0%B8%9A%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%97%E0%B8%B3%E0%B8%87%E0%B8%B2%E0%B8%99%20%C2%B7%20%E0%B8%88%E0%B8%B8%E0%B8%94%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%8B%E0%B8%B1%E0%B8%9A%E0%B8%8B%E0%B9%89%E0%B8%AD%E0%B8%99-ff6d00?style=for-the-badge">
-  </a>
-</p>
-
-<p align="center">
-  รายละเอียดทั้งหมดอยู่ใน <a href="docs/DESIGN.md"><b>docs/DESIGN.md</b></a>
+  รายละเอียดทั้งหมดอธิบายไว้ใน <a href="docs/DESIGN.md"><img src="docs/design-link.gif" alt="กด docs/DESIGN.md" height="28"></a>
 </p>
 
 <table>
@@ -111,16 +105,30 @@
 ## โครงโค้ด
 
 ```text
-frontend/                    หน้าเว็บ   pages/customer และ pages/admin
-src/NatureMiniPlex.Web/      API        Controllers → Services → Data
-tests/NatureMiniPlex.Tests/  เทสกติกา   ใช้ฐานคนละก้อน
+NatureMiniPlex/
+│
+├── frontend/
+│   └── หน้าเว็บ React
+│       ├── pages/customer/    # Customer Pages
+│       └── pages/admin/       # Admin Pages
+│
+├── src/
+│   └── NatureMiniPlex.Web/
+│       ├── Controllers/       # API Controllers
+│       ├── Services/          # Business Logic
+│       ├── Models/            # Data Models
+│       ├── DTOs/              # Data Transfer Objects
+│       └── Data/              # Database Context
+│
+├── tests/
+│   └── NatureMiniPlex.Tests/  # Automated Tests
+│
+└── docs/
+    ├── DESIGN.md              # System Design Documentation
+    └── screenshots/           # Application Screenshots
 ```
 
-<p align="center">
-  <a href="docs/DESIGN.md">
-    <img alt="เปิด docs/DESIGN.md" src="https://img.shields.io/badge/%E0%B9%80%E0%B8%9B%E0%B8%B4%E0%B8%94%20DESIGN.md-%E0%B8%81%E0%B8%8E%E0%B8%B4%E0%B8%81%E0%B8%B2%20%C2%B7%20%E0%B8%95%E0%B8%B2%E0%B8%A3%E0%B8%B2%E0%B8%87%20%C2%B7%20%E0%B8%A5%E0%B8%B3%E0%B8%94%E0%B8%B1%E0%B8%9A%E0%B8%81%E0%B8%B2%E0%B8%A3%E0%B8%97%E0%B8%B3%E0%B8%87%E0%B8%B2%E0%B8%99%20%C2%B7%20%E0%B8%88%E0%B8%B8%E0%B8%94%E0%B8%97%E0%B8%B5%E0%B9%88%E0%B8%8B%E0%B8%B1%E0%B8%9A%E0%B8%8B%E0%B9%89%E0%B8%AD%E0%B8%99-ff6d00?style=for-the-badge">
-  </a>
-</p>
+<p>รายละเอียดทั้งหมดอธิบายไว้ใน <a href="docs/DESIGN.md"><img src="docs/design-link.gif" alt="กด docs/DESIGN.md" height="28"></a></p>
 
 ```bash
 dotnet test tests/NatureMiniPlex.Tests/NatureMiniPlex.Tests.csproj
